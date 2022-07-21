@@ -478,12 +478,12 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
               return;
             }
           }
-          if(!check && device.getBluetoothClass().getDeviceClass() != 7936){
+          if(!check && device.getBluetoothClass().getDeviceClass() == 1664){
             devices.add(new DevicesModel(device.getName(),device.getAddress()));
             System.out.println("Printer: " + device.getName() + " | "+ device.getAddress() + " | " + device.getUuids() + " | " + device.getBluetoothClass().getDeviceClass());
           }
         }else{
-          if(device.getBluetoothClass().getDeviceClass() != 7936){
+          if(device.getBluetoothClass().getDeviceClass() == 1664){
             devices.add(new DevicesModel(device.getName(),device.getAddress()));
           }
 //          devices.add(new DevicesModel(device.getName(),device.getAddress()));

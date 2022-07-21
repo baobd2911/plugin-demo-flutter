@@ -215,8 +215,8 @@ class _MyHomePageState extends State<MyHomePage> {
       });
       return;
     }
-    await EventPrintPos.offBluetooth();
     list = [];
+    await EventPrintPos.offBluetooth();
     setState(() {
       isChoose = value;
     });
@@ -269,20 +269,20 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                       deviceBluetooth(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          // OutlineButton(
-                          //   child: const Text('Kết nối'),
-                          //   onPressed: _connected ? null : _onConnect,
-                          // ),
-                          const SizedBox(width: 10.0),
-                          OutlineButton(
-                            child: const Text('Ngắt kết nối'),
-                            onPressed: _connected ? _onDisconnect : null,
-                          ),
-                        ],
-                      ),
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.center,
+                      //   children: <Widget>[
+                      //     // OutlineButton(
+                      //     //   child: const Text('Kết nối'),
+                      //     //   onPressed: _connected ? null : _onConnect,
+                      //     // ),
+                      //   //   const SizedBox(width: 10.0),
+                      //   //   OutlineButton(
+                      //   //     child: const Text('Ngắt kết nối'),
+                      //   //   ),
+                      //   // ],   onPressed: _connected ? _onDisconnect : null,
+                      //
+                      // ),
 
                       // OutlineButton(
                       //   child: Text('In hóa đơn'),
