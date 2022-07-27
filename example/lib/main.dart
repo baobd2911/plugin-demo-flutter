@@ -215,6 +215,9 @@ class _MyHomePageState extends State<MyHomePage> {
         list = [];
         print('Không có máy in nào !!!');
       }
+
+
+      
       // print(list.toString());
       bluetoothPrint.startScan(timeout: Duration(seconds: 4));
       setState(() {
