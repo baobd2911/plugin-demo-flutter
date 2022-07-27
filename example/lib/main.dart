@@ -169,6 +169,8 @@ class _MyHomePageState extends State<MyHomePage> {
     _device = BluetoothDevice();
     _device.name = nameDevice;
     _device.address = addressDevice;
+    _device.type = 12;
+    _device.connected = true;
 
     if (_device?.address != null) {
       await bluetoothPrint.connect(_device);
@@ -200,22 +202,27 @@ class _MyHomePageState extends State<MyHomePage> {
   void onChangeStateBlue(value) async {
     if (value) {
       String listDevice = await EventPrintPos.onBluetooth();
-      List<dynamic> devices = listDevice.split("&");
-      for(dynamic device in devices){
-        String text = device.toString();
+      if(listDevice != ""){
+        List<dynamic> devices = listDevice.split("&");
+        for(dynamic device in devices){
+          String text = device.toString();
 
-        List<dynamic> deviceInfo = text.split("|");
-        DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1]);
-        list.add(model);
+          List<dynamic> deviceInfo = text.split("|");
+          DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1]);
+          list.add(model);
+        }
+      }else{
+        list = [];
+        print('Không có máy in nào !!!');
       }
-      print(list.toString());
+      // print(list.toString());
       bluetoothPrint.startScan(timeout: Duration(seconds: 4));
       setState(() {
         isChoose = value;
       });
       return;
     }
-    list = [];
+    // list = [];
     await EventPrintPos.offBluetooth();
     setState(() {
       isChoose = value;
@@ -413,8 +420,10 @@ class _MyHomePageState extends State<MyHomePage> {
       children: <Widget>[
         Expanded(
           child: SizedBox(
-            height: 200.0,
-            child: ListView.builder(
+            height: 60.0,
+            child: list.isEmpty
+                ? Center(child: Text("No printer !!!"))
+              :ListView.builder(
               itemCount: list.length,
               itemBuilder: (context, index) {
                 return Card(

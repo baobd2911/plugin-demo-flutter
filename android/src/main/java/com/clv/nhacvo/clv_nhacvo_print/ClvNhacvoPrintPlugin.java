@@ -489,15 +489,21 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 //          devices.add(new DevicesModel(device.getName(),device.getAddress()));
         }
       }
-      else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+      if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
         String finalString = "";
-        for (int i=0;i<devices.size();i++){
-          finalString = finalString + devices.get(i).toDescription() + "&";
+        if(devices.size() > 0){
+          for (int i=0;i<devices.size();i++){
+            finalString = finalString + devices.get(i).toDescription() + "&";
+          }
+          finalString = finalString.substring(0, finalString.length() - 1);
+          System.out.println("Device 3: " + finalString);
+          globalChannelResult.success(finalString);
+          context.unregisterReceiver(receiver);
+        }else{
+          System.out.println("Khong co may in !!!");
+          globalChannelResult.success(finalString);
+          context.unregisterReceiver(receiver);
         }
-        finalString = finalString.substring(0, finalString.length() - 1);
-        System.out.println("Device 3: " + finalString);
-        globalChannelResult.success(finalString);
-        context.unregisterReceiver(receiver);
       }
     }
   };
