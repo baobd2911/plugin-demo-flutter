@@ -271,9 +271,9 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
           widthTemp = widthMax < 580 ? 580 : widthMax;
 
           if(heightTemp > 900){
-            heightTemp = 900;
+            heightTemp = 1900; // 900
           }else if(heightTemp <200){
-            heightTemp = 200;
+            heightTemp = 1900; // 200
           }
 
           System.out.println( "-----------------Start--------------------");
@@ -380,6 +380,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   };
 
   private void turnOffBluetooth (){
+    devices = new ArrayList<>();
     try {
       mBluetoothAdapter.disable();
       Toast.makeText(context,"Bluetooth Turned OFF", Toast.LENGTH_SHORT).show();
@@ -505,7 +506,6 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
           context.unregisterReceiver(receiver);
         }
       }
-      devices = new ArrayList<>();
     }
   };
 
