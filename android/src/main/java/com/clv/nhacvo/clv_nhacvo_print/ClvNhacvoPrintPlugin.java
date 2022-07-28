@@ -380,6 +380,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   };
 
   private void turnOffBluetooth (){
+    devices = new ArrayList<>();
     try {
       mBluetoothAdapter.disable();
       Toast.makeText(context,"Bluetooth Turned OFF", Toast.LENGTH_SHORT).show();
