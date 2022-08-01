@@ -73,6 +73,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   private MethodChannel channel;
   private MethodChannel channelPrint;
   private MethodChannel getListBluetoothPrinters;
+  private MethodChannel checkState;
   private LocationRequest locationRequest;
   private static final int REQUEST_CHECK_SETTINGS = 10001;
   private ArrayList<String> mDeviceList = new ArrayList<String>();
@@ -127,10 +128,10 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       }else if (call.method.equals("offBluetooth")) {
         turnOffBluetooth();
       }
-      else if (call.method.equals("connectDevice")) {
-        bluetoothScanning();
+      else if (call.method.equals("checkStateBluetooth")) {
+        boolean checkbluetooth = checkState();
+        result.success(checkbluetooth);
       }
-      checkState();
     } catch (Exception e) {
       result.error("500", "Server Error", e.getMessage());
     }
@@ -142,6 +143,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     channelPrint.setMethodCallHandler(null);
     channel.setMethodCallHandler(null);
     getListBluetoothPrinters.setMethodCallHandler(null);
+    checkState.setMethodCallHandler(null);
     pluginBinding = null;
 
   }
@@ -171,9 +173,11 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     channel.setMethodCallHandler(null);
     channelPrint.setMethodCallHandler(null);
     getListBluetoothPrinters.setMethodCallHandler(null);
+    checkState.setMethodCallHandler(null);
     channel = null;
     channelPrint = null;
     getListBluetoothPrinters = null;
+    checkState = null;
     mBluetoothAdapter = null;
     application = null;
   }
@@ -197,9 +201,11 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       channel = new MethodChannel(messenger, "com.clv.demo/print");
       channelPrint = new MethodChannel(messenger, "com.clv.demo/print");
       getListBluetoothPrinters = new MethodChannel(messenger, "com.clv.demo/getListBluetoothPrinters");
+      checkState = new MethodChannel(messenger, "com.clv.demo/checkState");
       channel.setMethodCallHandler(this);
       channelPrint.setMethodCallHandler(this);
       getListBluetoothPrinters.setMethodCallHandler(this);
+      checkState.setMethodCallHandler(this);
       mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
       mBluetoothAdapter.startDiscovery();
       if (registrar != null) {
@@ -340,27 +346,32 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     }
   }
 
-  private void checkState(){
-    IntentFilter filter = new IntentFilter();
-    filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-    context.registerReceiver(brCheckState, filter);
-
+  private boolean checkState(){
+    boolean check = false;
+    if(mBluetoothAdapter.isEnabled()){
+      System.out.println("State 1: Bluetooth turn on !!");
+      check = true;
+    }else{
+      System.out.println("State 1: Bluetooth turn off !!");
+      check = false;
+    }
+    return check;
   }
 
-  private final BroadcastReceiver brCheckState = new BroadcastReceiver() {
-
-    @Override
-    public void onReceive(Context context, Intent intent) {
-      final String action = intent.getAction();
-      if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-        if(mBluetoothAdapter.isEnabled()){
-          System.out.println("State 1: Bluetooth turn on !!");
-        }else{
-          System.out.println("State 1: Bluetooth turn off !!");
-        }
-      }
-    }
-  };
+//  private final BroadcastReceiver brCheckState = new BroadcastReceiver() {
+//
+//    @Override
+//    public void onReceive(Context context, Intent intent) {
+//      final String action = intent.getAction();
+//      if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+//        if(mBluetoothAdapter.isEnabled()){
+//          System.out.println("State 1: Bluetooth turn on !!");
+//        }else{
+//          System.out.println("State 1: Bluetooth turn off !!");
+//        }
+//      }
+//    }
+//  };
 
   private final BroadcastReceiver getReceiver = new BroadcastReceiver() {
     @Override

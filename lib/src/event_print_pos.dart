@@ -7,6 +7,7 @@ class EventPrintPos {
   static const MethodChannel channel = MethodChannel('com.clv.demo/print');
   static const MethodChannel channelPrint = MethodChannel('com.clv.demo/print');
   static const MethodChannel getListBluetoothPrinters = MethodChannel('com.clv.demo/getListBluetoothPrinters');
+  static const MethodChannel checkState = MethodChannel('com.clv.demo/checkState');
 
   // Get battery level.
   static Future<String> getBatteryLevel() async {
@@ -59,8 +60,8 @@ class EventPrintPos {
     return result;
   }
 
-  static Future<String> connectDevice() async {
-    String mList = await getListBluetoothPrinters.invokeMethod('connectDevice');
-    return Future.value(mList);
+  static Future<bool> checkStateBluetooth() async {
+    bool result = await checkState.invokeMethod("checkStateBluetooth");
+    return result;
   }
 }
