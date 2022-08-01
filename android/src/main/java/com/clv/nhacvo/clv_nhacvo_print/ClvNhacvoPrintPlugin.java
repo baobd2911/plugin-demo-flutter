@@ -130,6 +130,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       else if (call.method.equals("connectDevice")) {
         bluetoothScanning();
       }
+      checkState();
     } catch (Exception e) {
       result.error("500", "Server Error", e.getMessage());
     }
@@ -271,9 +272,11 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
           widthTemp = widthMax < 580 ? 580 : widthMax;
 
           if(heightTemp > 900){
-            heightTemp = 1900; // 900
+            heightTemp = 1800; // 900
           }else if(heightTemp <200){
-            heightTemp = 1900; // 200
+            heightTemp = 1800; // 200
+          }else{
+            heightTemp = 1800;
           }
 
           System.out.println( "-----------------Start--------------------");
@@ -336,6 +339,28 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       }
     }
   }
+
+  private void checkState(){
+    IntentFilter filter = new IntentFilter();
+    filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+    context.registerReceiver(brCheckState, filter);
+
+  }
+
+  private final BroadcastReceiver brCheckState = new BroadcastReceiver() {
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      final String action = intent.getAction();
+      if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+        if(mBluetoothAdapter.isEnabled()){
+          System.out.println("State 1: Bluetooth turn on !!");
+        }else{
+          System.out.println("State 1: Bluetooth turn off !!");
+        }
+      }
+    }
+  };
 
   private final BroadcastReceiver getReceiver = new BroadcastReceiver() {
     @Override
@@ -490,7 +515,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 //          devices.add(new DevicesModel(device.getName(),device.getAddress()));
         }
       }
-      if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+      else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
         String finalString = "";
         if(devices.size() > 0){
           for (int i=0;i<devices.size();i++){

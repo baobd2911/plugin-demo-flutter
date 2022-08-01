@@ -189,9 +189,9 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  // void _onBluetooth() async {
-  //   var value = await EventPrintPos.onBluetooth();
-  // }
+  void _onBluetooth() async {
+    var value = await EventPrintPos.onBluetooth();
+  }
 
   void _offBluetooth() async {
     var value = await EventPrintPos.offBluetooth();
@@ -304,10 +304,10 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: const Text("Print QR"),
                         onPressed: _sendMessage,
                       ),
-                      // OutlineButton(
-                      //   child: const Text("ON Bluetooth"),
-                      //   onPressed: _onBluetooth,
-                      // ),
+                      OutlineButton(
+                        child: const Text("ON Bluetooth"),
+                        onPressed: _onBluetooth,
+                      ),
                       OutlineButton(
                         child: const Text("OFF Bluetooth"),
                         onPressed: _offBluetooth,
