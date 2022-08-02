@@ -121,7 +121,8 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
         int printerDpi = (int) arguments.get("printerDpi");
         int heightMax = (int) arguments.get("heightMax");
         int widthMax = (int) arguments.get("widthMax");
-        Map<String, Object> arrStatus = onPrint(bitmapInput, printerDpi, widthMax, heightMax, 0);
+        int countPage = (int) arguments.get("countPage");
+        Map<String, Object> arrStatus = onPrint(bitmapInput, printerDpi, widthMax, heightMax, 0, countPage);
         result.success(arrStatus);
       }else if (call.method.equals("onBluetooth")) {
         turnOnBluetooth();
@@ -251,7 +252,9 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
           byte[] bitmapInput,
           int printerDpi ,
           int heightMax ,
-          int widthMax, int callback ){
+          int widthMax,
+          int callback,
+          int countPage){
     Map<String, Object>  dataMap = new HashMap<>();
     String _message = "";
     if(callback < 3){
@@ -278,11 +281,11 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
           widthTemp = widthMax < 580 ? 580 : widthMax;
 
           if(heightTemp > 900){
-            heightTemp = 1800; // 900
+            heightTemp = 900; // 900
           }else if(heightTemp <200){
-            heightTemp = 1800; // 200
+            heightTemp = 200; // 200
           }else{
-            heightTemp = 1800;
+            heightTemp = 900 * countPage;
           }
 
           System.out.println( "-----------------Start--------------------");
@@ -305,7 +308,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
         } else {
           // println("\"No printer was connected!\"");
           _message = "\"No printer was connected!\"";
-          Map<String, Object> arrStatus = onPrint(bitmapInput, printerDpi, widthMax, heightMax, callback);
+          Map<String, Object> arrStatus = onPrint(bitmapInput, printerDpi, widthMax, heightMax, callback, countPage);
         }
       }
     }
