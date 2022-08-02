@@ -287,7 +287,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 //          }
 //          else
 //          {
-            heightTemp = 800 * countPage;
+            heightTemp = 700 * countPage;
 //          }
 
           System.out.println( "-----------------Start--------------------");
