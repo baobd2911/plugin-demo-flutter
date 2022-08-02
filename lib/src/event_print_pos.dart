@@ -6,8 +6,10 @@ import 'package:flutter/services.dart';
 class EventPrintPos {
   static const MethodChannel channel = MethodChannel('com.clv.demo/print');
   static const MethodChannel channelPrint = MethodChannel('com.clv.demo/print');
-  static const MethodChannel getListBluetoothPrinters = MethodChannel('com.clv.demo/getListBluetoothPrinters');
-  static const MethodChannel checkState = MethodChannel('com.clv.demo/checkState');
+  static const MethodChannel getListBluetoothPrinters =
+      MethodChannel('com.clv.demo/getListBluetoothPrinters');
+  static const MethodChannel checkState =
+      MethodChannel('com.clv.demo/checkState');
 
   // Get battery level.
   static Future<String> getBatteryLevel() async {
@@ -32,7 +34,8 @@ class EventPrintPos {
     return value;
   }
 
-  static Future<dynamic> sendSignalPrint(Uint8List capturedImage) async {
+  static Future<dynamic> sendSignalPrint(
+      Uint8List capturedImage, int countPage) async {
     var _sendData = <String, dynamic>{
       "bitmapInput": capturedImage,
       "printerDpi": 190,
@@ -40,6 +43,7 @@ class EventPrintPos {
       "printerNbrCharactersPerLine": 32,
       "widthMax": 580,
       "heightMax": 400,
+      "countPage": countPage
     };
     var result = await channelPrint.invokeMethod("onPrint", _sendData);
     print(result);
