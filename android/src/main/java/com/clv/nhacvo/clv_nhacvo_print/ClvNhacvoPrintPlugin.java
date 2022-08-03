@@ -133,6 +133,9 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
         boolean checkbluetooth = checkState();
         result.success(checkbluetooth);
       }
+      else if (call.method.equals("scanDeviceBluetooth")) {
+        scanDevice();
+      }
     } catch (Exception e) {
       result.error("500", "Server Error", e.getMessage());
     }
@@ -222,21 +225,6 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 
   private static final int REQUEST_FINE_LOCATION_PERMISSIONS = 1452;
 
-//  @Override
-//  public boolean onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-//
-//    if (requestCode == REQUEST_FINE_LOCATION_PERMISSIONS) {
-//      if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-////        startScan(pendingCall, pendingResult);
-//      } else {
-////        pendingResult.error("no_permissions", "this plugin requires location permissions for scanning", null);
-////        pendingResult = null;
-//      }
-//      return true;
-//    }
-//    return false;
-//
-//  }
 
   private ArrayList<DevicesModel> onGetDevicesBluetooth() {
     pairedDevices = mBluetoothAdapter.getBondedDevices();
@@ -407,6 +395,14 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   };
 
 
+  private void scanDevice(){
+//    IntentFilter filter = new IntentFilter();
+//    filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+//    context.registerReceiver(mBroadcastReceiver1, filter);
+    bluetoothScanning();
+  }
+
+
   private final BroadcastReceiver mBroadcastReceiver1 = new BroadcastReceiver() {
 
     @Override
@@ -414,7 +410,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       final String action = intent.getAction();
 
       if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED) && mBluetoothAdapter.isEnabled()) {
-        bluetoothScanning();
+        globalChannelResult.success("scan");
         context.unregisterReceiver(mBroadcastReceiver1);
       }
     }
