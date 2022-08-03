@@ -38,7 +38,7 @@ class EventPrintPos {
       Uint8List capturedImage, int countPage) async {
     var _sendData = <String, dynamic>{
       "bitmapInput": capturedImage,
-      "printerDpi": 150, //190
+      "printerDpi": 190, //190
       "printerWidthMM": int.parse('80'),
       "printerNbrCharactersPerLine": 32,
       "widthMax": 580,
