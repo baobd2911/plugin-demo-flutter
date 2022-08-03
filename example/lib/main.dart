@@ -204,28 +204,46 @@ class _MyHomePageState extends State<MyHomePage> {
     print(isCheckState);
   }
 
+  void _scanDevice() async {
+    String listDevice = await EventPrintPos.scanBluetooth();
+    if(listDevice != ""){
+      List<dynamic> devices = listDevice.split("&");
+      for(dynamic device in devices){
+        String text = device.toString();
+
+        List<dynamic> deviceInfo = text.split("|");
+        DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1]);
+        list.add(model);
+      }
+    }else{
+      list = [];
+      print('Không có máy in nào !!!');
+    }
+  }
+
 
   bool isChoose = false;
   void onChangeStateBlue(value) async {
     if (value) {
-      String listDevice = await EventPrintPos.onBluetooth();
-      if(listDevice != ""){
-        List<dynamic> devices = listDevice.split("&");
-        for(dynamic device in devices){
-          String text = device.toString();
+      String scan = await EventPrintPos.onBluetooth();
+      if(scan.endsWith("scan")){
+        String listDevice = await EventPrintPos.scanBluetooth();
+        if(listDevice != ""){
+          List<dynamic> devices = listDevice.split("&");
+          for(dynamic device in devices){
+            String text = device.toString();
 
-          List<dynamic> deviceInfo = text.split("|");
-          DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1]);
-          list.add(model);
+            List<dynamic> deviceInfo = text.split("|");
+            DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1]);
+            list.add(model);
+          }
+        }else{
+          list = [];
+          print('Không có máy in nào !!!');
         }
-      }else{
-        list = [];
-        print('Không có máy in nào !!!');
+        // _scanDevice();
       }
-
-
-      
-      // print(list.toString());
+      print('Fail !!!');
       bluetoothPrint.startScan(timeout: Duration(seconds: 4));
       setState(() {
         isChoose = value;
@@ -319,10 +337,10 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: const Text("OFF Bluetooth"),
                         onPressed: _offBluetooth,
                       ),
-                      OutlineButton(
-                        child: const Text("Check"),
-                        onPressed: _checkState,
-                      ),
+                      // OutlineButton(
+                      //   child: const Text("Check"),
+                      //   onPressed: _scanDevice,
+                      // ),
                     ],
                   ),
                 ),
@@ -383,7 +401,7 @@ class _MyHomePageState extends State<MyHomePage> {
       img.Image fixedImage;
       fixedImage = img.copyRotate(originalImage, -90);
       var result =
-      await EventPrintPos.sendSignalPrint(img.encodeJpg(fixedImage));
+      await EventPrintPos.sendSignalPrint(img.encodeJpg(fixedImage),2);
       var _sendData = <String, dynamic>{
         "bitmapInput": result,
         "printerDpi": 190,
@@ -437,7 +455,7 @@ class _MyHomePageState extends State<MyHomePage> {
             height: 60.0,
             child: list.isEmpty
                 ? Center(child: Text("No printer !!!"))
-              :ListView.builder(
+                :ListView.builder(
               itemCount: list.length,
               itemBuilder: (context, index) {
                 return Card(

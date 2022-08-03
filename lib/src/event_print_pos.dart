@@ -51,12 +51,12 @@ class EventPrintPos {
   }
 
   static Future<String> onBluetooth() async {
-    // var result = await channelPrint.invokeMethod("onBluetooth");
-    // return result;
+    var result = await channelPrint.invokeMethod("onBluetooth");
+    return result;
 
-    String mList = await getListBluetoothPrinters.invokeMethod("onBluetooth");
-    print(mList);
-    return Future.value(mList);
+    // String mList = await getListBluetoothPrinters.invokeMethod("onBluetooth");
+    // print(mList);
+    // return Future.value(mList);
   }
 
   static Future<dynamic> offBluetooth() async {
@@ -67,5 +67,12 @@ class EventPrintPos {
   static Future<bool> checkStateBluetooth() async {
     bool result = await checkState.invokeMethod("checkStateBluetooth");
     return result;
+  }
+
+
+  static Future<String> scanBluetooth() async {
+    String mList = await getListBluetoothPrinters.invokeMethod("scanDeviceBluetooth");
+    print(mList);
+    return Future.value(mList);
   }
 }
