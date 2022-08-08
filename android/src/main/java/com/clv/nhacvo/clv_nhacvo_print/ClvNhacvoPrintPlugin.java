@@ -396,9 +396,6 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 
 
   private void scanDevice(){
-//    IntentFilter filter = new IntentFilter();
-//    filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-//    context.registerReceiver(mBroadcastReceiver1, filter);
     bluetoothScanning();
   }
 
@@ -468,9 +465,28 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   private void bluetoothScanning(){
     IntentFilter filter = new IntentFilter();
     checkPermission();
-    filter.addAction(BluetoothDevice.ACTION_FOUND);
-    filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-    context.registerReceiver(receiver, filter);
+    String finalString = "";
+    pairedDevices = mBluetoothAdapter.getBondedDevices();
+    if(pairedDevices.size() > 0){
+      for (BluetoothDevice bt : pairedDevices) {
+        System.out.println("ID: " + bt.getBluetoothClass().getDeviceClass());
+        if(bt.getBluetoothClass().getDeviceClass() == 1664){
+          devices.add(new DevicesModel(bt.getName(), bt.getAddress()));
+        }
+      }
+      if(devices.size()>0){
+        for(int i=0;i<devices.size();i++){
+          finalString = finalString + devices.get(i).toDescription() + "&";
+        }
+        finalString = finalString.substring(0, finalString.length() - 1);
+        System.out.println("Device 2: " + finalString);
+        globalChannelResult.success(finalString);
+      }else{
+        filter.addAction(BluetoothDevice.ACTION_FOUND);
+        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        context.registerReceiver(receiver, filter);
+      }
+    }
   }
 
 
@@ -505,7 +521,6 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   private final BroadcastReceiver receiver = new BroadcastReceiver() {
     public void onReceive(Context context, Intent intent) {
       String action = intent.getAction();
-
       if (BluetoothDevice.ACTION_FOUND.equals(action)) {
         BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
         if(devices.size()!=0){
@@ -524,7 +539,6 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
           if(device.getBluetoothClass().getDeviceClass() == 1664){
             devices.add(new DevicesModel(device.getName(),device.getAddress()));
           }
-//          devices.add(new DevicesModel(device.getName(),device.getAddress()));
         }
       }
       else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
@@ -576,23 +590,14 @@ class DevicesModel{
     this.deviceAddress = deviceAddress;
   }
 
-//  public ParcelUuid[] getDeviceUuid() {
-//    return deviceUuid;
-//  }
-
-//  public void setDeviceUuid(ParcelUuid[] deviceUuid) {
-//    this.deviceUuid = deviceUuid;
-//  }
 
   String deviceName;
   String deviceAddress;
-//  ParcelUuid[] deviceUuid;
 
 
   DevicesModel(String deviceName, String deviceAddress){
     this.deviceName = deviceName;
     this.deviceAddress = deviceAddress;
-//    this.deviceUuid = deviceUuid;
   }
   String toDescription(){
     return deviceName + "|" + deviceAddress;
