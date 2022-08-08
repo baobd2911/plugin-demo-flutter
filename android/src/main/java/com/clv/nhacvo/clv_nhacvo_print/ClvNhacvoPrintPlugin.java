@@ -275,7 +275,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 //          }
 //          else
 //          {
-            heightTemp = 1000 * countPage;
+          heightTemp = 1000 * countPage;
 //          }
 
           System.out.println( "-----------------Start--------------------");
@@ -460,12 +460,13 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       }
     });
   }
-
+  
 
   private void bluetoothScanning(){
     IntentFilter filter = new IntentFilter();
     checkPermission();
     String finalString = "";
+    devices = new ArrayList<>();
     pairedDevices = mBluetoothAdapter.getBondedDevices();
     if(pairedDevices.size() > 0){
       for (BluetoothDevice bt : pairedDevices) {
