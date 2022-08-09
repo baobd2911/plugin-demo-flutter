@@ -460,7 +460,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       }
     });
   }
-  
+
 
   private void bluetoothScanning(){
     IntentFilter filter = new IntentFilter();
@@ -472,7 +472,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       for (BluetoothDevice bt : pairedDevices) {
         System.out.println("ID: " + bt.getBluetoothClass().getDeviceClass());
         if(bt.getBluetoothClass().getDeviceClass() == 1664){
-          devices.add(new DevicesModel(bt.getName(), bt.getAddress()));
+          devices.add(new DevicesModel(bt.getName(), bt.getAddress(),true));
         }
       }
       if(devices.size()>0){
@@ -533,12 +533,12 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
             }
           }
           if(!check && device.getBluetoothClass().getDeviceClass() == 1664){
-            devices.add(new DevicesModel(device.getName(),device.getAddress()));
+            devices.add(new DevicesModel(device.getName(),device.getAddress(),false));
             System.out.println("Printer: " + device.getName() + " | "+ device.getAddress() + " | " + device.getUuids() + " | " + device.getBluetoothClass().getDeviceClass());
           }
         }else{
           if(device.getBluetoothClass().getDeviceClass() == 1664){
-            devices.add(new DevicesModel(device.getName(),device.getAddress()));
+            devices.add(new DevicesModel(device.getName(),device.getAddress(),false));
           }
         }
       }
@@ -591,16 +591,25 @@ class DevicesModel{
     this.deviceAddress = deviceAddress;
   }
 
+  public boolean isStateDevice() {
+    return stateDevice;
+  }
+
+  public void setStateDevice(boolean stateDevice) {
+    this.stateDevice = stateDevice;
+  }
 
   String deviceName;
   String deviceAddress;
+  boolean stateDevice;
 
-
-  DevicesModel(String deviceName, String deviceAddress){
+  public DevicesModel(String deviceName, String deviceAddress, boolean stateDevice) {
     this.deviceName = deviceName;
     this.deviceAddress = deviceAddress;
+    this.stateDevice = stateDevice;
   }
+
   String toDescription(){
-    return deviceName + "|" + deviceAddress;
+    return deviceName + "|" + deviceAddress + "|" + stateDevice;
   }
 }

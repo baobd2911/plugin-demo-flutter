@@ -212,7 +212,7 @@ class _MyHomePageState extends State<MyHomePage> {
         String text = device.toString();
 
         List<dynamic> deviceInfo = text.split("|");
-        DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1]);
+        DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1],deviceInfo[2]);
         list.add(model);
       }
     }else{
@@ -234,7 +234,9 @@ class _MyHomePageState extends State<MyHomePage> {
             String text = device.toString();
 
             List<dynamic> deviceInfo = text.split("|");
-            DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1]);
+            bool stateDevice =  deviceInfo[2] == "true" ? true : false;
+            print(stateDevice);
+            DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1],stateDevice);
             list.add(model);
           }
         }else{
@@ -459,9 +461,17 @@ class _MyHomePageState extends State<MyHomePage> {
               itemCount: list.length,
               itemBuilder: (context, index) {
                 return Card(
-                  child: ListTile(
+                  child: list[index].state == true ?
+                  ListTile(
                     title:  Text(list[index].name == "null" ? " Unknown" : " " +  list[index].name,style: TextStyle(color: Colors.grey,fontSize: 13)),
                     leading: Icon( Icons.print_outlined),
+                    onTap: (){
+                      _onConnect(list[index].name,list[index].address);
+                    },
+                  )
+                  : ListTile(
+                    title:  Text(list[index].name == "null" ? " Unknown" : " " +  list[index].name,style: TextStyle(color: Colors.grey,fontSize: 13)),
+                    leading: Icon( Icons.print_disabled),
                     onTap: (){
                       _onConnect(list[index].name,list[index].address);
                     },
