@@ -487,6 +487,10 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
         filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         context.registerReceiver(receiver, filter);
       }
+    }else{
+      filter.addAction(BluetoothDevice.ACTION_FOUND);
+      filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+      context.registerReceiver(receiver, filter);
     }
   }
 
