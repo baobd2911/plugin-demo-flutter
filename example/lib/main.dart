@@ -454,7 +454,7 @@ class _MyHomePageState extends State<MyHomePage> {
       children: <Widget>[
         Expanded(
           child: SizedBox(
-            height: 60.0,
+            height: 200.0,
             child: list.isEmpty
                 ? Center(child: Text("No printer !!!"))
                 :ListView.builder(
@@ -464,7 +464,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: list[index].state == true ?
                   ListTile(
                     title:  Text(list[index].name == "null" ? " Unknown" : " " +  list[index].name,style: TextStyle(color: Colors.grey,fontSize: 13)),
-                    leading: Icon( Icons.print_outlined),
+                    leading: Icon( Icons.check_circle),
                     onTap: (){
                       _onConnect(list[index].name,list[index].address);
                     },
