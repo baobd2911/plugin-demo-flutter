@@ -454,10 +454,10 @@ class _MyHomePageState extends State<MyHomePage> {
       children: <Widget>[
         Expanded(
           child: SizedBox(
-            height: 200.0,
             child: list.isEmpty
                 ? Center(child: Text("No printer !!!"))
                 :ListView.builder(
+              shrinkWrap: true,
               itemCount: list.length,
               itemBuilder: (context, index) {
                 return Card(
@@ -465,13 +465,15 @@ class _MyHomePageState extends State<MyHomePage> {
                   ListTile(
                     title:  Text(list[index].name == "null" ? " Unknown" : " " +  list[index].name,style: TextStyle(color: Colors.grey,fontSize: 13)),
                     leading: Icon( Icons.check_circle),
+                    trailing: Icon( Icons.check_circle),
                     onTap: (){
                       _onConnect(list[index].name,list[index].address);
                     },
                   )
                   : ListTile(
                     title:  Text(list[index].name == "null" ? " Unknown" : " " +  list[index].name,style: TextStyle(color: Colors.grey,fontSize: 13)),
-                    leading: Icon( Icons.print_disabled),
+                    leading: Icon( Icons.print),
+                    trailing: Icon( Icons.check_circle),
                     onTap: (){
                       _onConnect(list[index].name,list[index].address);
                     },
