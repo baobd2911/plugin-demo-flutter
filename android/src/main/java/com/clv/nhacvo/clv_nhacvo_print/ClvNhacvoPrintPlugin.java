@@ -462,6 +462,9 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 
 
   private void bluetoothScanning(){
+    deviceResult = new ArrayList<>();
+    scanDevice = new ArrayList<>();
+    connectedDevice = new ArrayList<>();
     IntentFilter filter = new IntentFilter();
     checkPermission();
     filter.addAction(BluetoothDevice.ACTION_FOUND);
@@ -512,15 +515,15 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
               return;
             }
           }
-          if(!check && device.getBluetoothClass().getDeviceClass() == 1664){
+          if(!check){
             scanDevice.add(new DevicesModel(device.getName(),device.getAddress(),false));
             System.out.println("Printer: " + device.getName() + " | "+ device.getAddress() + " | " + device.getUuids() + " | " + device.getBluetoothClass().getDeviceClass());
           }
         }else{
-          if(device.getBluetoothClass().getDeviceClass() == 1664){
-            scanDevice.add(new DevicesModel(device.getName(),device.getAddress(),false));
-          }
-//          scanDevice.add(new DevicesModel(device.getName(),device.getAddress(),false));
+//          if(device.getBluetoothClass().getDeviceClass() == 1664){
+//            scanDevice.add(new DevicesModel(device.getName(),device.getAddress(),false));
+//          }
+          scanDevice.add(new DevicesModel(device.getName(),device.getAddress(),false));
         }
       }
       else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
@@ -547,6 +550,8 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 
         for (int i = 0; i < deviceResult.size(); i++) {
           for (int j=i+1; j < deviceResult.size(); j++) {
+            System.out.println("01: " + deviceResult.get(i).getDeviceAddress());
+            System.out.println("02: " + deviceResult.get(j).getDeviceAddress());
             if(deviceResult.get(i).getDeviceAddress().equals(deviceResult.get(j).getDeviceAddress())) {
               deviceResult.remove(i);
             }
