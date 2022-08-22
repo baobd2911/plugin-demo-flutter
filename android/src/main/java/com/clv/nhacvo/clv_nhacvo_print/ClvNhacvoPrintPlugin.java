@@ -566,10 +566,12 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
           System.out.println("Device 3: " + finalString);
           globalChannelResult.success(finalString);
           context.unregisterReceiver(receiver);
+          mBluetoothAdapter.cancelDiscovery();
         }else{
           System.out.println("Khong co may in !!!");
           globalChannelResult.success(finalString);
           context.unregisterReceiver(receiver);
+          mBluetoothAdapter.cancelDiscovery();
         }
       }
     }
