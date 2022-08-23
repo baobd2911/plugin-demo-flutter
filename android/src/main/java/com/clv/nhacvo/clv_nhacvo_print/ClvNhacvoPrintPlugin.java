@@ -532,18 +532,16 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
         System.out.println(scanDevice);
         pairedDevices = mBluetoothAdapter.getBondedDevices();
         for (BluetoothDevice bt : pairedDevices) {
-          for(int i = 0; i<scanDevice.size();i++){
-            System.out.println("01: " + scanDevice.get(i).getDeviceAddress());
-            System.out.println("02: " + bt.getAddress());
-            if (bt.getBluetoothClass().getDeviceClass() == 1664) {
-              connectedDevice.add(new DevicesModel(bt.getName(), bt.getAddress(),true));
-            }
+          if (bt.getBluetoothClass().getDeviceClass() == 1664) {
+            connectedDevice.add(new DevicesModel(bt.getName(), bt.getAddress(),true));
+          }
+//          for(int i = 0; i<scanDevice.size();i++){
 //            if(scanDevice.get(i).getDeviceAddress().equals(bt.getAddress())){
 //              if (bt.getBluetoothClass().getDeviceClass() == 1664) {
 //                connectedDevice.add(new DevicesModel(bt.getName(), bt.getAddress(),true));
 //              }
 //            }
-          }
+//          }
         }
         System.out.println("scanDevice: " + scanDevice.size());
         System.out.println("connectedDevice: " + connectedDevice.size());
