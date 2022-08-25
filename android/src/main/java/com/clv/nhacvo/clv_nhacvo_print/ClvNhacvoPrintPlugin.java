@@ -297,11 +297,11 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
               textToPrint.append("[C]<img>" + PrinterTextParserImg.bitmapToHexadecimalString(printer, bitmap) + "</img>\n");
             }
             printer.printFormattedTextAndCut(textToPrint.toString());
-            _message = "Success";
+            _message = "\"Successfully !!!\"";
             break;
           } else {
             // println("\"No printer was connected!\"");
-            _message = "\"No printer was connected!\"";
+            _message = "\"No printer was connected !!!\"";
 //          onPrint(bitmapInput, printerDpi, widthMax, heightMax, callback, countPage);
           }
         }
