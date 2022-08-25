@@ -247,28 +247,29 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
           int countPage){
     Map<String, Object>  dataMap = new HashMap<>();
     String _message = "";
-    if(callback < 3){
-      callback +=1;
-    }else{
-      _message = "Callback Function Error";
-      dataMap.put("message",_message);
-      return dataMap;
-    }
-    try {
-      if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
-        ActivityCompat.requestPermissions( activityBinding.getActivity(), new String[]{Manifest.permission.BLUETOOTH}, PERMISSION_BLUETOOTH);
-      } else {
-        BluetoothConnection connection = BluetoothPrintersConnections.selectFirstPaired();
-        if (connection != null) {
-          EscPosPrinter printer = new EscPosPrinter(connection, printerDpi, 80f, 32);
+//    if(callback < 3){
+//      callback +=1;
+//    }else{
+//      _message = "Callback Function Error";
+//      dataMap.put("message",_message);
+//      return dataMap;
+//    }
+    for(int i = 0 ; i < 3 ; i++){
+      try {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
+          ActivityCompat.requestPermissions( activityBinding.getActivity(), new String[]{Manifest.permission.BLUETOOTH}, PERMISSION_BLUETOOTH);
+        } else {
+          BluetoothConnection connection = BluetoothPrintersConnections.selectFirstPaired();
+          if (connection != null) {
+            EscPosPrinter printer = new EscPosPrinter(connection, printerDpi, 80f, 32);
 
-          byte[]  bitMapData = bitmapInput;// stream.toByteArray()
-          Bitmap decodedByte = BitmapFactory.decodeByteArray(bitMapData, 0, bitMapData.length);
-          int widthTemp = decodedByte.getWidth();
-          int heightTemp = decodedByte.getHeight();
+            byte[]  bitMapData = bitmapInput;// stream.toByteArray()
+            Bitmap decodedByte = BitmapFactory.decodeByteArray(bitMapData, 0, bitMapData.length);
+            int widthTemp = decodedByte.getWidth();
+            int heightTemp = decodedByte.getHeight();
 
 
-          widthTemp = widthMax < 580 ? 580 : widthMax;
+            widthTemp = widthMax < 580 ? 580 : widthMax;
 
 //          if(heightTemp > 900){
 //            heightTemp = 900; // 900
@@ -277,36 +278,38 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 //          }
 //          else
 //          {
-          heightTemp = 900 * countPage;
+            heightTemp = 900 * countPage;
 //          }
 
-          System.out.println( "-----------------Start--------------------");
-          System.out.println( "Input:  " + widthMax + " || " + heightMax);
-          System.out.println( "Current:  " + widthTemp + " || " + heightTemp);
-          System.out.println( "------------------End---------------------");
+            System.out.println( "-----------------Start--------------------");
+            System.out.println( "Input:  " + widthMax + " || " + heightMax);
+            System.out.println( "Current:  " + widthTemp + " || " + heightTemp);
+            System.out.println( "------------------End---------------------");
 
-          Bitmap resizedBitmap = Bitmap.createScaledBitmap(decodedByte, widthTemp, heightTemp, false);
-          decodedByte.recycle();
-          int width = resizedBitmap.getWidth();
-          int height = resizedBitmap.getHeight();
+            Bitmap resizedBitmap = Bitmap.createScaledBitmap(decodedByte, widthTemp, heightTemp, false);
+            decodedByte.recycle();
+            int width = resizedBitmap.getWidth();
+            int height = resizedBitmap.getHeight();
 
-          StringBuilder textToPrint = new StringBuilder();
-          for(int y = 0; y < height; y += 256) {
-            Bitmap bitmap = Bitmap.createBitmap(resizedBitmap, 0, y, width, (y + 256 >= height) ? height - y : 256);
-            textToPrint.append("[C]<img>" + PrinterTextParserImg.bitmapToHexadecimalString(printer, bitmap) + "</img>\n");
+            StringBuilder textToPrint = new StringBuilder();
+            for(int y = 0; y < height; y += 256) {
+              Bitmap bitmap = Bitmap.createBitmap(resizedBitmap, 0, y, width, (y + 256 >= height) ? height - y : 256);
+              textToPrint.append("[C]<img>" + PrinterTextParserImg.bitmapToHexadecimalString(printer, bitmap) + "</img>\n");
+            }
+            printer.printFormattedTextAndCut(textToPrint.toString());
+            _message = "Success";
+            break;
+          } else {
+            // println("\"No printer was connected!\"");
+            _message = "\"No printer was connected!\"";
+//          onPrint(bitmapInput, printerDpi, widthMax, heightMax, callback, countPage);
           }
-          printer.printFormattedTextAndCut(textToPrint.toString());
-          _message = "Success";
-        } else {
-          // println("\"No printer was connected!\"");
-          _message = "\"No printer was connected!\"";
-          Map<String, Object> arrStatus = onPrint(bitmapInput, printerDpi, widthMax, heightMax, callback, countPage);
         }
       }
-    }
-    catch (Exception e) {
-      _message = "Error";
-      // println(e.getMessage());
+      catch (Exception e) {
+        _message = "Error";
+        // println(e.getMessage());
+      }
     }
     dataMap.put("message",_message);
     return dataMap;

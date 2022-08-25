@@ -412,6 +412,7 @@ class _MyHomePageState extends State<MyHomePage> {
         "widthMax": 580,
         "heightMax": 400,
       };
+      print('TEXT: ' + result["message"]);
       print(result);
     }).catchError((onError) {
       print(onError);
