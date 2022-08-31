@@ -87,70 +87,70 @@ class _MyHomePageState extends State<MyHomePage> {
         timeout: const Duration(seconds: 4)); // scan trong 4s, tìm device
 
     bool isConnected = await bluetoothPrint.isConnected;
-    // bluetoothPrint.state.listen((state) {
-    //   print('cur device status: $state');
-    //   switch (state) {
-    //     case BluetoothCode.CONNECTED:
-    //       setState(() {
-    //         _connected = true;
-    //         print("bluetooth device state: connected");
-    //         tips = 'bluetooth device state: connected';
-    //       });
-    //       break;
-    //     case BluetoothCode.DISCONNECTED:
-    //       setState(() {
-    //         _connected = false;
-    //         print("bluetooth device state: disconnected");
-    //         tips = "bluetooth device state: disconnected";
-    //       });
-    //       break;
-    //     case BluetoothCode.DISCONNECT_REQUESTED:
-    //       setState(() {
-    //         _connected = false;
-    //         print("bluetooth device state: disconnect requested");
-    //         tips = "bluetooth device state: disconnect requested";
-    //       });
-    //       break;
-    //     case BluetoothCode.STATE_TURNING_OFF:
-    //       setState(() {
-    //         _connected = false;
-    //         print("bluetooth device state: bluetooth turning off");
-    //         tips = "bluetooth device state: bluetooth turning off";
-    //       });
-    //       break;
-    //     case BluetoothCode.STATE_OFF:
-    //       setState(() {
-    //         _connected = false;
-    //         print("bluetooth device state: bluetooth off");
-    //         tips = "bluetooth device state: bluetooth off";
-    //       });
-    //       break;
-    //     case BluetoothCode.STATE_ON:
-    //       setState(() {
-    //         _connected = false;
-    //         print("bluetooth device state: bluetooth on");
-    //         tips = "bluetooth device state: bluetooth on";
-    //       });
-    //       break;
-    //     case BluetoothCode.STATE_TURNING_ON:
-    //       setState(() {
-    //         _connected = false;
-    //         print("bluetooth device state: bluetooth turning on");
-    //         tips = "bluetooth device state: bluetooth turning on";
-    //       });
-    //       break;
-    //     case BluetoothCode.ERROR:
-    //       setState(() {
-    //         _connected = false;
-    //         print("bluetooth device state: error");
-    //         tips = "bluetooth device state: error";
-    //       });
-    //       break;
-    //     default:
-    //       print(state);
-    //       break;
-    //   }
-    // });
+    bluetoothPrint.state.listen((state) {
+      print('cur device status: $state');
+      switch (state) {
+        case BluetoothCode.CONNECTED:
+          setState(() {
+            _connected = true;
+            print("bluetooth device state: connected");
+            tips = 'bluetooth device state: connected';
+          });
+          break;
+        case BluetoothCode.DISCONNECTED:
+          setState(() {
+            _connected = false;
+            print("bluetooth device state: disconnected");
+            tips = "bluetooth device state: disconnected";
+          });
+          break;
+        case BluetoothCode.DISCONNECT_REQUESTED:
+          setState(() {
+            _connected = false;
+            print("bluetooth device state: disconnect requested");
+            tips = "bluetooth device state: disconnect requested";
+          });
+          break;
+        case BluetoothCode.STATE_TURNING_OFF:
+          setState(() {
+            _connected = false;
+            print("bluetooth device state: bluetooth turning off");
+            tips = "bluetooth device state: bluetooth turning off";
+          });
+          break;
+        case BluetoothCode.STATE_OFF:
+          setState(() {
+            _connected = false;
+            print("bluetooth device state: bluetooth off");
+            tips = "bluetooth device state: bluetooth off";
+          });
+          break;
+        case BluetoothCode.STATE_ON:
+          setState(() {
+            _connected = false;
+            print("bluetooth device state: bluetooth on");
+            tips = "bluetooth device state: bluetooth on";
+          });
+          break;
+        case BluetoothCode.STATE_TURNING_ON:
+          setState(() {
+            _connected = false;
+            print("bluetooth device state: bluetooth turning on");
+            tips = "bluetooth device state: bluetooth turning on";
+          });
+          break;
+        case BluetoothCode.ERROR:
+          setState(() {
+            _connected = false;
+            print("bluetooth device state: error");
+            tips = "bluetooth device state: error";
+          });
+          break;
+        default:
+          print(state);
+          break;
+      }
+    });
 
     if (!mounted) return; // nếu chưa kết nối thì không làm gì
 
