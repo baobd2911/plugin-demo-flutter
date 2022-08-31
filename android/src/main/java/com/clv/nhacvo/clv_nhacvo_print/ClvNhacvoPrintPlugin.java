@@ -476,7 +476,8 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
       context.registerReceiver(receiver, filter);
     }else{
-      Toast.makeText(context, "Please turn on your GPS", Toast.LENGTH_SHORT).show();
+      mBluetoothAdapter.disable();
+      return;
     }
   }
 
