@@ -465,20 +465,14 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 
 
   private void bluetoothScanning(){
-    LocationManager manager = (LocationManager) context.getSystemService( Context.LOCATION_SERVICE );
     deviceResult = new ArrayList<>();
     scanDevice = new ArrayList<>();
     connectedDevice = new ArrayList<>();
-    if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-      IntentFilter filter = new IntentFilter();
-      checkPermission();
-      filter.addAction(BluetoothDevice.ACTION_FOUND);
-      filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-      context.registerReceiver(receiver, filter);
-    }else{
-      mBluetoothAdapter.disable();
-      return;
-    }
+    IntentFilter filter = new IntentFilter();
+    checkPermission();
+    filter.addAction(BluetoothDevice.ACTION_FOUND);
+    filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+    context.registerReceiver(receiver, filter);
   }
 
 
