@@ -499,11 +499,11 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     if (requestCode == REQUEST_FINE_LOCATION_PERMISSIONS) {
       if (requestCode == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        mBluetoothAdapter.startDiscovery();
+//        mBluetoothAdapter.startDiscovery();
       } else {
         checkPermission();
       }
-      onRequestPermissionsResult(requestCode, permissions, grantResults);
+//      onRequestPermissionsResult(requestCode, permissions, grantResults);
       return true;
     }
     return false;
