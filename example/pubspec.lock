@@ -27,7 +27,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: "68bd19e2f5fe9d58081edd6c528a0f9852d239fa"
+      resolved-ref: "55bcd82971d1a322f2d5833c25de50be834eccdd"
       url: "https://github.com/baobd2911/bluetooth_print.git"
     source: git
     version: "3.0.1"
