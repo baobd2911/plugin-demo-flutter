@@ -18,11 +18,16 @@ dependencies:
   flutter:
     sdk: flutter
 
+  bluetooth_print:
+    git:
+      url: https://github.com/baobd2911/bluetooth_print.git
+      ref: master
+
   blue_thermal_printer: ^1.2.0
   measure_size: ^2.0.0
   screenshot: ^1.2.3
   qr_flutter: ^4.0.0
-  bluetooth_print: ^3.0.1
+#  bluetooth_print: ^3.0.1
 
   clv_nhacvo_print:
     # When depending on this package from a real application you should use:
