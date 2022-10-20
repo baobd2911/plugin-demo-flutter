@@ -31,7 +31,7 @@ class BluetoothDeviceScan {
 class FlutterScanBluetooth {
   static final _singleton = FlutterScanBluetooth._();
   final MethodChannel _channel = const MethodChannel('flutter_scan_bluetooth');
-  final List<BluetoothDeviceScan> _pairedDevices = [];
+  List<BluetoothDeviceScan> _pairedDevices = [];
   final StreamController<BluetoothDeviceScan> _controller = StreamController.broadcast();
   final StreamController<bool> _scanStopped = StreamController.broadcast();
 
@@ -63,6 +63,7 @@ class FlutterScanBluetooth {
   }
 
   Future<void> startScan() async {
+    _pairedDevices = [];
     final bondedDevices = await _channel.invokeMethod('action_start_scan');
     for (var device in bondedDevices) {
       final d = BluetoothDeviceScan(device['name'], device['address'], paired: true);
