@@ -1,5 +1,6 @@
 import 'package:clv_nhacvo_print/src/event_print_pos.dart';
 import 'package:clv_nhacvo_print/src/bluetooth_code.dart';
+import 'package:clv_nhacvo_print/src/flutter_scan_bluetooth.dart';
 import 'package:flutter/material.dart';
 import 'DevicesModel.dart';
 
@@ -65,6 +66,10 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
 
+  String _data = '';
+  bool _scanning = false;
+  FlutterScanBluetooth _bluetooth = FlutterScanBluetooth();
+
   @override
   void initState() {
     super.initState();
@@ -74,12 +79,46 @@ class _MyHomePageState extends State<MyHomePage> {
     WidgetsBinding.instance?.addPostFrameCallback((_) => initBluetooth());
 
     // get tín hiệu đầu tiên
-    _getMessage().then((message) {
-      print('message: $message');
+    // _getMessage().then((message) {
+    //   print('message: $message');
+    //   setState(() {
+    //     _message = message;
+    //   });
+    // });
+
+    _bluetooth.devices.listen((device) {
+      _data = device.name;
       setState(() {
-        _message = message;
+        if(device.name.endsWith("_noDevice")){
+          print('No Device !!!!!');
+        }else{
+          if(list.isEmpty){
+            DevicesModel model = DevicesModel(device.name,device.address,device.paired);
+            list.add(model);
+          }else{
+            bool check = false;
+            for(int i=0; i<list.length; i++){
+              if(list[i].address.endsWith(device.address)){
+                check = true;
+                return;
+              }
+            }
+            if(!check){
+              DevicesModel model = DevicesModel(device.name,device.address,device.paired);
+              list.add(model);
+            }
+          }
+        }
       });
+      print(_data);
     });
+    // _bluetooth.scanStopped.listen((device) {
+    //   setState(() {
+    //     _scanning = false;
+    //     _data += 'scan stopped\n';
+    //   });
+    // });
+
   }
 
   Future<void> initBluetooth() async {
@@ -227,26 +266,30 @@ class _MyHomePageState extends State<MyHomePage> {
     if (value) {
       String scan = await EventPrintPos.onBluetooth();
       if(scan.endsWith("scan")){
-        String listDevice = await EventPrintPos.scanBluetooth();
-        if(listDevice != ""){
-          List<dynamic> devices = listDevice.split("&");
-          for(dynamic device in devices){
-            String text = device.toString();
-
-            List<dynamic> deviceInfo = text.split("|");
-            bool stateDevice =  deviceInfo[2] == "true" ? true : false;
-            print(stateDevice);
-            DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1],stateDevice);
-            list.add(model);
-          }
-        }else{
-          list = [];
-          print('Không có máy in nào !!!');
-        }
+        // String listDevice = await EventPrintPos.scanBluetooth();
+        // if(listDevice != ""){
+        //   List<dynamic> devices = listDevice.split("&");
+        //   for(dynamic device in devices){
+        //     String text = device.toString();
+        //
+        //     List<dynamic> deviceInfo = text.split("|");
+        //     bool stateDevice =  deviceInfo[2] == "true" ? true : false;
+        //     print(stateDevice);
+        //     DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1],stateDevice);
+        //     list.add(model);
+        //   }
+        // }else{
+        //   list = [];
+        //   print('Không có máy in nào !!!');
+        // }
         // _scanDevice();
+
+        list = [];
+        await _bluetooth.startScan();
+        debugPrint("scanning started");
       }
-      print('Fail !!!');
-      bluetoothPrint.startScan(timeout: Duration(seconds: 4));
+      // print('Fail !!!');
+      // bluetoothPrint.startScan(timeout: Duration(seconds: 4));
       setState(() {
         isChoose = value;
       });
@@ -471,7 +514,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       _onConnect(list[index].name,list[index].address);
                     },
                   )
-                  : ListTile(
+                      : ListTile(
                     title:  Text(list[index].name == "null" ? " Unknown" : " " +  list[index].name,style: TextStyle(color: Colors.grey,fontSize: 13)),
                     leading: Icon( Icons.print),
                     trailing: Icon( Icons.check_circle),
