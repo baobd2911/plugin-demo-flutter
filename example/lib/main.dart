@@ -61,6 +61,10 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
 
+  String _data = '';
+  bool _scanning = false;
+  FlutterScanBluetooth _bluetooth = FlutterScanBluetooth();
+
   @override
   void initState() {
     super.initState();
@@ -70,12 +74,46 @@ class _MyHomePageState extends State<MyHomePage> {
     WidgetsBinding.instance?.addPostFrameCallback((_) => initBluetooth());
 
     // get tín hiệu đầu tiên
-    _getMessage().then((message) {
-      print('message: $message');
+    // _getMessage().then((message) {
+    //   print('message: $message');
+    //   setState(() {
+    //     _message = message;
+    //   });
+    // });
+
+    _bluetooth.devices.listen((device) {
+      _data = device.name;
       setState(() {
-        _message = message;
+        if(device.name.endsWith("_noDevice")){
+          print('No Device !!!!!');
+        }else{
+          if(list.isEmpty){
+            DevicesModel model = DevicesModel(device.name,device.address,device.paired);
+            list.add(model);
+          }else{
+            bool check = false;
+            for(int i=0; i<list.length; i++){
+              if(list[i].address.endsWith(device.address)){
+                check = true;
+                return;
+              }
+            }
+            if(!check){
+              DevicesModel model = DevicesModel(device.name,device.address,device.paired);
+              list.add(model);
+            }
+          }
+        }
       });
+      print(_data);
     });
+    // _bluetooth.scanStopped.listen((device) {
+    //   setState(() {
+    //     _scanning = false;
+    //     _data += 'scan stopped\n';
+    //   });
+    // });
+
   }
 
   Future<void> initBluetooth() async {
@@ -83,70 +121,70 @@ class _MyHomePageState extends State<MyHomePage> {
         timeout: const Duration(seconds: 4)); // scan trong 4s, tìm device
 
     bool isConnected = await bluetoothPrint.isConnected;
-    // bluetoothPrint.state.listen((state) {
-    //   print('cur device status: $state');
-    //   switch (state) {
-    //     case BluetoothCode.CONNECTED:
-    //       setState(() {
-    //         _connected = true;
-    //         print("bluetooth device state: connected");
-    //         tips = 'bluetooth device state: connected';
-    //       });
-    //       break;
-    //     case BluetoothCode.DISCONNECTED:
-    //       setState(() {
-    //         _connected = false;
-    //         print("bluetooth device state: disconnected");
-    //         tips = "bluetooth device state: disconnected";
-    //       });
-    //       break;
-    //     case BluetoothCode.DISCONNECT_REQUESTED:
-    //       setState(() {
-    //         _connected = false;
-    //         print("bluetooth device state: disconnect requested");
-    //         tips = "bluetooth device state: disconnect requested";
-    //       });
-    //       break;
-    //     case BluetoothCode.STATE_TURNING_OFF:
-    //       setState(() {
-    //         _connected = false;
-    //         print("bluetooth device state: bluetooth turning off");
-    //         tips = "bluetooth device state: bluetooth turning off";
-    //       });
-    //       break;
-    //     case BluetoothCode.STATE_OFF:
-    //       setState(() {
-    //         _connected = false;
-    //         print("bluetooth device state: bluetooth off");
-    //         tips = "bluetooth device state: bluetooth off";
-    //       });
-    //       break;
-    //     case BluetoothCode.STATE_ON:
-    //       setState(() {
-    //         _connected = false;
-    //         print("bluetooth device state: bluetooth on");
-    //         tips = "bluetooth device state: bluetooth on";
-    //       });
-    //       break;
-    //     case BluetoothCode.STATE_TURNING_ON:
-    //       setState(() {
-    //         _connected = false;
-    //         print("bluetooth device state: bluetooth turning on");
-    //         tips = "bluetooth device state: bluetooth turning on";
-    //       });
-    //       break;
-    //     case BluetoothCode.ERROR:
-    //       setState(() {
-    //         _connected = false;
-    //         print("bluetooth device state: error");
-    //         tips = "bluetooth device state: error";
-    //       });
-    //       break;
-    //     default:
-    //       print(state);
-    //       break;
-    //   }
-    // });
+    bluetoothPrint.state.listen((state) {
+      print('cur device status: $state');
+      switch (state) {
+        case BluetoothCode.CONNECTED:
+          setState(() {
+            _connected = true;
+            print("bluetooth device state: connected");
+            tips = 'bluetooth device state: connected';
+          });
+          break;
+        case BluetoothCode.DISCONNECTED:
+          setState(() {
+            _connected = false;
+            print("bluetooth device state: disconnected");
+            tips = "bluetooth device state: disconnected";
+          });
+          break;
+        case BluetoothCode.DISCONNECT_REQUESTED:
+          setState(() {
+            _connected = false;
+            print("bluetooth device state: disconnect requested");
+            tips = "bluetooth device state: disconnect requested";
+          });
+          break;
+        case BluetoothCode.STATE_TURNING_OFF:
+          setState(() {
+            _connected = false;
+            print("bluetooth device state: bluetooth turning off");
+            tips = "bluetooth device state: bluetooth turning off";
+          });
+          break;
+        case BluetoothCode.STATE_OFF:
+          setState(() {
+            _connected = false;
+            print("bluetooth device state: bluetooth off");
+            tips = "bluetooth device state: bluetooth off";
+          });
+          break;
+        case BluetoothCode.STATE_ON:
+          setState(() {
+            _connected = false;
+            print("bluetooth device state: bluetooth on");
+            tips = "bluetooth device state: bluetooth on";
+          });
+          break;
+        case BluetoothCode.STATE_TURNING_ON:
+          setState(() {
+            _connected = false;
+            print("bluetooth device state: bluetooth turning on");
+            tips = "bluetooth device state: bluetooth turning on";
+          });
+          break;
+        case BluetoothCode.ERROR:
+          setState(() {
+            _connected = false;
+            print("bluetooth device state: error");
+            tips = "bluetooth device state: error";
+          });
+          break;
+        default:
+          print(state);
+          break;
+      }
+    });
 
     if (!mounted) return; // nếu chưa kết nối thì không làm gì
 
@@ -208,7 +246,7 @@ class _MyHomePageState extends State<MyHomePage> {
         String text = device.toString();
 
         List<dynamic> deviceInfo = text.split("|");
-        DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1]);
+        DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1],deviceInfo[2]);
         list.add(model);
       }
     } else {
@@ -237,9 +275,13 @@ class _MyHomePageState extends State<MyHomePage> {
           print('Không có máy in nào !!!');
         }
         // _scanDevice();
+
+        list = [];
+        await _bluetooth.startScan();
+        debugPrint("scanning started");
       }
-      print('Fail !!!');
-      bluetoothPrint.startScan(timeout: Duration(seconds: 4));
+      // print('Fail !!!');
+      // bluetoothPrint.startScan(timeout: Duration(seconds: 4));
       setState(() {
         isChoose = value;
       });
@@ -405,6 +447,7 @@ class _MyHomePageState extends State<MyHomePage> {
         "widthMax": 580,
         "heightMax": 400,
       };
+      print('TEXT: ' + result["message"]);
       print(result);
     }).catchError((onError) {
       print(onError);
@@ -447,7 +490,6 @@ class _MyHomePageState extends State<MyHomePage> {
       children: <Widget>[
         Expanded(
           child: SizedBox(
-            height: 60.0,
             child: list.isEmpty
                 ? Center(child: Text("No printer !!!"))
                 : ListView.builder(

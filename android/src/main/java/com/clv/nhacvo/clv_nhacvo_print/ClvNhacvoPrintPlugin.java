@@ -56,7 +56,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -71,6 +74,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   private static final String TAG = "BluetoothPrintPlugin";
 
   private MethodChannel channel;
+  private MethodChannel _channel;
   private MethodChannel channelPrint;
   private MethodChannel getListBluetoothPrinters;
   private MethodChannel checkState;
@@ -79,7 +83,9 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   private ArrayList<String> mDeviceList = new ArrayList<String>();
   private BluetoothAdapter mBluetoothAdapter;
   Set<BluetoothDevice> pairedDevices;
-  ArrayList<DevicesModel> devices = new ArrayList<DevicesModel>();
+  ArrayList<DevicesModel> deviceResult = new ArrayList<DevicesModel>();
+  ArrayList<DevicesModel> scanDevice = new ArrayList<DevicesModel>();
+  ArrayList<DevicesModel> connectedDevice = new ArrayList<DevicesModel>();
   public static final int PERMISSION_BLUETOOTH = 1;
   private Object initializationLock = new Object();
   private MethodChannel.Result globalChannelResult;
@@ -134,7 +140,10 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
         result.success(checkbluetooth);
       }
       else if (call.method.equals("scanDeviceBluetooth")) {
-        scanDevice();
+        bluetoothScanning();
+      }
+      else if (call.method.equals("action_start_scan")) {
+        scan(result);
       }
     } catch (Exception e) {
       result.error("500", "Server Error", e.getMessage());
@@ -147,6 +156,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     channelPrint.setMethodCallHandler(null);
     channel.setMethodCallHandler(null);
     getListBluetoothPrinters.setMethodCallHandler(null);
+    _channel.setMethodCallHandler(null);
     checkState.setMethodCallHandler(null);
     pluginBinding = null;
 
@@ -175,10 +185,12 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     activityBinding.removeRequestPermissionsResultListener(this);
     activityBinding = null;
     channel.setMethodCallHandler(null);
+    _channel.setMethodCallHandler(null);
     channelPrint.setMethodCallHandler(null);
     getListBluetoothPrinters.setMethodCallHandler(null);
     checkState.setMethodCallHandler(null);
     channel = null;
+    _channel = null;
     channelPrint = null;
     getListBluetoothPrinters = null;
     checkState = null;
@@ -203,10 +215,12 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       this.application = application;
       this.context = application;
       channel = new MethodChannel(messenger, "com.clv.demo/print");
+      _channel = new MethodChannel(messenger, "flutter_scan_bluetooth");
       channelPrint = new MethodChannel(messenger, "com.clv.demo/print");
       getListBluetoothPrinters = new MethodChannel(messenger, "com.clv.demo/getListBluetoothPrinters");
       checkState = new MethodChannel(messenger, "com.clv.demo/checkState");
       channel.setMethodCallHandler(this);
+      _channel.setMethodCallHandler(this);
       channelPrint.setMethodCallHandler(this);
       getListBluetoothPrinters.setMethodCallHandler(this);
       checkState.setMethodCallHandler(this);
@@ -228,12 +242,12 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 
   private ArrayList<DevicesModel> onGetDevicesBluetooth() {
     pairedDevices = mBluetoothAdapter.getBondedDevices();
-    devices = new ArrayList<>();
+    deviceResult = new ArrayList<>();
 
     for (BluetoothDevice bt : pairedDevices) {
 //      devices.add(new DevicesModel(bt.getName(), bt.getAddress()));
     }
-    return devices;
+    return deviceResult;
   }
 
   private Map<String, Object> onPrint(
@@ -245,28 +259,29 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
           int countPage){
     Map<String, Object>  dataMap = new HashMap<>();
     String _message = "";
-    if(callback < 3){
-      callback +=1;
-    }else{
-      _message = "Callback Function Error";
-      dataMap.put("message",_message);
-      return dataMap;
-    }
-    try {
-      if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
-        ActivityCompat.requestPermissions( activityBinding.getActivity(), new String[]{Manifest.permission.BLUETOOTH}, PERMISSION_BLUETOOTH);
-      } else {
-        BluetoothConnection connection = BluetoothPrintersConnections.selectFirstPaired();
-        if (connection != null) {
-          EscPosPrinter printer = new EscPosPrinter(connection, printerDpi, 80f, 32);
+//    if(callback < 3){
+//      callback +=1;
+//    }else{
+//      _message = "Callback Function Error";
+//      dataMap.put("message",_message);
+//      return dataMap;
+//    }
+    for(int i = 0 ; i < 3 ; i++){
+      try {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
+          ActivityCompat.requestPermissions( activityBinding.getActivity(), new String[]{Manifest.permission.BLUETOOTH}, PERMISSION_BLUETOOTH);
+        } else {
+          BluetoothConnection connection = BluetoothPrintersConnections.selectFirstPaired();
+          if (connection != null) {
+            EscPosPrinter printer = new EscPosPrinter(connection, printerDpi, 80f, 32);
 
-          byte[]  bitMapData = bitmapInput;// stream.toByteArray()
-          Bitmap decodedByte = BitmapFactory.decodeByteArray(bitMapData, 0, bitMapData.length);
-          int widthTemp = decodedByte.getWidth();
-          int heightTemp = decodedByte.getHeight();
+            byte[]  bitMapData = bitmapInput;// stream.toByteArray()
+            Bitmap decodedByte = BitmapFactory.decodeByteArray(bitMapData, 0, bitMapData.length);
+            int widthTemp = decodedByte.getWidth();
+            int heightTemp = decodedByte.getHeight();
 
 
-          widthTemp = widthMax < 580 ? 580 : widthMax;
+            widthTemp = widthMax < 580 ? 580 : widthMax;
 
 //          if(heightTemp > 900){
 //            heightTemp = 900; // 900
@@ -275,36 +290,38 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 //          }
 //          else
 //          {
-          heightTemp = 900 * countPage;
+            heightTemp = 900 * countPage;
 //          }
 
-          System.out.println( "-----------------Start--------------------");
-          System.out.println( "Input:  " + widthMax + " || " + heightMax);
-          System.out.println( "Current:  " + widthTemp + " || " + heightTemp);
-          System.out.println( "------------------End---------------------");
+            System.out.println( "-----------------Start--------------------");
+            System.out.println( "Input:  " + widthMax + " || " + heightMax);
+            System.out.println( "Current:  " + widthTemp + " || " + heightTemp);
+            System.out.println( "------------------End---------------------");
 
-          Bitmap resizedBitmap = Bitmap.createScaledBitmap(decodedByte, widthTemp, heightTemp, false);
-          decodedByte.recycle();
-          int width = resizedBitmap.getWidth();
-          int height = resizedBitmap.getHeight();
+            Bitmap resizedBitmap = Bitmap.createScaledBitmap(decodedByte, widthTemp, heightTemp, false);
+            decodedByte.recycle();
+            int width = resizedBitmap.getWidth();
+            int height = resizedBitmap.getHeight();
 
-          StringBuilder textToPrint = new StringBuilder();
-          for(int y = 0; y < height; y += 256) {
-            Bitmap bitmap = Bitmap.createBitmap(resizedBitmap, 0, y, width, (y + 256 >= height) ? height - y : 256);
-            textToPrint.append("[C]<img>" + PrinterTextParserImg.bitmapToHexadecimalString(printer, bitmap) + "</img>\n");
+            StringBuilder textToPrint = new StringBuilder();
+            for(int y = 0; y < height; y += 256) {
+              Bitmap bitmap = Bitmap.createBitmap(resizedBitmap, 0, y, width, (y + 256 >= height) ? height - y : 256);
+              textToPrint.append("[C]<img>" + PrinterTextParserImg.bitmapToHexadecimalString(printer, bitmap) + "</img>\n");
+            }
+            printer.printFormattedTextAndCut(textToPrint.toString());
+            _message = "Success !!!";
+            break;
+          } else {
+            // println("\"No printer was connected!\"");
+            _message = "No printer was connected !!!";
+//          onPrint(bitmapInput, printerDpi, widthMax, heightMax, callback, countPage);
           }
-          printer.printFormattedTextAndCut(textToPrint.toString());
-          _message = "Success";
-        } else {
-          // println("\"No printer was connected!\"");
-          _message = "\"No printer was connected!\"";
-          Map<String, Object> arrStatus = onPrint(bitmapInput, printerDpi, widthMax, heightMax, callback, countPage);
         }
       }
-    }
-    catch (Exception e) {
-      _message = "Error";
-      // println(e.getMessage());
+      catch (Exception e) {
+        _message = "Error";
+        // println(e.getMessage());
+      }
     }
     dataMap.put("message",_message);
     return dataMap;
@@ -395,11 +412,6 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   };
 
 
-  private void scanDevice(){
-    bluetoothScanning();
-  }
-
-
   private final BroadcastReceiver mBroadcastReceiver1 = new BroadcastReceiver() {
 
     @Override
@@ -414,7 +426,9 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   };
 
   private void turnOffBluetooth (){
-    devices = new ArrayList<>();
+    deviceResult = new ArrayList<>();
+    scanDevice = new ArrayList<>();
+    connectedDevice = new ArrayList<>();
     try {
       mBluetoothAdapter.disable();
       Toast.makeText(context,"Bluetooth Turned OFF", Toast.LENGTH_SHORT).show();
@@ -460,33 +474,21 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       }
     });
   }
-  
+
 
   private void bluetoothScanning(){
-    IntentFilter filter = new IntentFilter();
-    checkPermission();
-    String finalString = "";
-    devices = new ArrayList<>();
-    pairedDevices = mBluetoothAdapter.getBondedDevices();
-    if(pairedDevices.size() > 0){
-      for (BluetoothDevice bt : pairedDevices) {
-        System.out.println("ID: " + bt.getBluetoothClass().getDeviceClass());
-        if(bt.getBluetoothClass().getDeviceClass() == 1664){
-          devices.add(new DevicesModel(bt.getName(), bt.getAddress()));
-        }
-      }
-      if(devices.size()>0){
-        for(int i=0;i<devices.size();i++){
-          finalString = finalString + devices.get(i).toDescription() + "&";
-        }
-        finalString = finalString.substring(0, finalString.length() - 1);
-        System.out.println("Device 2: " + finalString);
-        globalChannelResult.success(finalString);
-      }else{
-        filter.addAction(BluetoothDevice.ACTION_FOUND);
-        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        context.registerReceiver(receiver, filter);
-      }
+    LocationManager manager = (LocationManager) context.getSystemService( Context.LOCATION_SERVICE );
+    deviceResult = new ArrayList<>();
+    scanDevice = new ArrayList<>();
+    connectedDevice = new ArrayList<>();
+    if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+      IntentFilter filter = new IntentFilter();
+      checkPermission();
+      filter.addAction(BluetoothDevice.ACTION_FOUND);
+      filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+      context.registerReceiver(receiver, filter);
+    }else{
+      globalChannelResult.success("disable");
     }
   }
 
@@ -509,57 +511,159 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     if (requestCode == REQUEST_FINE_LOCATION_PERMISSIONS) {
       if (requestCode == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        mBluetoothAdapter.startDiscovery();
+//        mBluetoothAdapter.startDiscovery();
       } else {
         checkPermission();
       }
-      onRequestPermissionsResult(requestCode, permissions, grantResults);
+//      onRequestPermissionsResult(requestCode, permissions, grantResults);
       return true;
     }
     return false;
   }
 
+//  private final BroadcastReceiver receiver = new BroadcastReceiver() {
+//    public void onReceive(Context context, Intent intent) {
+//      String action = intent.getAction();
+//      // scan device
+//      if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+//        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+//        if(scanDevice.size()>0){
+//          boolean check = false;
+//          for (int i=0;i<scanDevice.size();i++){
+//            if(scanDevice.get(i).getDeviceAddress().equals(device.getAddress())){
+//              check = true;
+//              return;
+//            }
+//          }
+//          if(!check && device.getBluetoothClass().getDeviceClass() == 1664){
+//            scanDevice.add(new DevicesModel(device.getName(),device.getAddress(),false));
+//            System.out.println("Printer: " + device.getName() + " | "+ device.getAddress() + " | " + device.getUuids() + " | " + device.getBluetoothClass().getDeviceClass());
+//          }
+//        }else{
+//          if(device.getBluetoothClass().getDeviceClass() == 1664){
+//            scanDevice.add(new DevicesModel(device.getName(),device.getAddress(),false));
+//            System.out.println("Printer: " + device.getName() + " | "+ device.getAddress() + " | " + device.getUuids() + " | " + device.getBluetoothClass().getDeviceClass());
+//          }
+////          scanDevice.add(new DevicesModel(device.getName(),device.getAddress(),false));
+//        }
+//      }
+//      else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+//        String finalString = "";
+//        // device connected
+//        System.out.println(scanDevice);
+//        pairedDevices = mBluetoothAdapter.getBondedDevices();
+//        for (BluetoothDevice bt : pairedDevices) {
+//          if (bt.getBluetoothClass().getDeviceClass() == 1664) {
+//            connectedDevice.add(new DevicesModel(bt.getName(), bt.getAddress(),true));
+//          }
+////          for(int i = 0; i<scanDevice.size();i++){
+////            if(scanDevice.get(i).getDeviceAddress().equals(bt.getAddress())){
+////              if (bt.getBluetoothClass().getDeviceClass() == 1664) {
+////                connectedDevice.add(new DevicesModel(bt.getName(), bt.getAddress(),true));
+////              }
+////            }
+////          }
+//        }
+//        System.out.println("scanDevice: " + scanDevice.size());
+//        System.out.println("connectedDevice: " + connectedDevice.size());
+//
+//        deviceResult.addAll(scanDevice);
+//        deviceResult.addAll(connectedDevice);
+//
+//        for (int i = 0; i < deviceResult.size(); i++) {
+//          for (int j=i+1; j < deviceResult.size(); j++) {
+//            System.out.println("01: " + deviceResult.get(i).getDeviceAddress());
+//            System.out.println("02: " + deviceResult.get(j).getDeviceAddress());
+//            if(deviceResult.get(i).getDeviceAddress().equals(deviceResult.get(j).getDeviceAddress())) {
+//              deviceResult.remove(i);
+//            }
+//          }
+//        }
+//
+//        if(deviceResult.size() > 0){
+//          for (int i=0;i<deviceResult.size();i++){
+//            finalString = finalString + deviceResult.get(i).toDescription() + "&";
+//          }
+//          finalString = finalString.substring(0, finalString.length() - 1);
+//          System.out.println("Device 3: " + finalString);
+//          globalChannelResult.success(finalString);
+//          context.unregisterReceiver(receiver);
+//          mBluetoothAdapter.cancelDiscovery();
+//        }else{
+//          System.out.println("Khong co may in !!!");
+//          globalChannelResult.success(finalString);
+//          context.unregisterReceiver(receiver);
+//          mBluetoothAdapter.cancelDiscovery();
+//        }
+//      }
+//    }
+//  };
+
+  private static final String ACTION_NEW_DEVICE = "action_new_device";
+  private static final String ACTION_SCAN_STOPPED = "action_scan_stopped";
+  private static final String ACTION_NO_PRINTER = "action_no_printer";
+  private boolean check = false;
+  private List<Map<String,String>> listBondedDevice = new ArrayList<>();
+
   private final BroadcastReceiver receiver = new BroadcastReceiver() {
     public void onReceive(Context context, Intent intent) {
       String action = intent.getAction();
+      BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
       if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-        if(devices.size()!=0){
-          boolean check = false;
-          for (int i=0;i<devices.size();i++){
-            if(devices.get(i).getDeviceAddress().equals(device.getAddress())){
-              check = true;
-              return;
-            }
-          }
-          if(!check && device.getBluetoothClass().getDeviceClass() == 1664){
-            devices.add(new DevicesModel(device.getName(),device.getAddress()));
-            System.out.println("Printer: " + device.getName() + " | "+ device.getAddress() + " | " + device.getUuids() + " | " + device.getBluetoothClass().getDeviceClass());
-          }
-        }else{
+        if(device != null){
           if(device.getBluetoothClass().getDeviceClass() == 1664){
-            devices.add(new DevicesModel(device.getName(),device.getAddress()));
+            _channel.invokeMethod(ACTION_NEW_DEVICE,toMap(device));
+            check = true;
           }
+//          _channel.invokeMethod(ACTION_NEW_DEVICE,toMap(device));
         }
-      }
-      else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-        String finalString = "";
-        if(devices.size() > 0){
-          for (int i=0;i<devices.size();i++){
-            finalString = finalString + devices.get(i).toDescription() + "&";
-          }
-          finalString = finalString.substring(0, finalString.length() - 1);
-          System.out.println("Device 3: " + finalString);
-          globalChannelResult.success(finalString);
-          context.unregisterReceiver(receiver);
-        }else{
-          System.out.println("Khong co may in !!!");
-          globalChannelResult.success(finalString);
-          context.unregisterReceiver(receiver);
+      }else if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)){
+        if(!check){
+          _channel.invokeMethod(ACTION_NO_PRINTER,null);
         }
+        check = false;
       }
     }
   };
+
+  private Map<String, String> toMap(BluetoothDevice device) {
+    Map<String, String> map = new HashMap<>();
+    String name = device.getName();
+    String address = device.getAddress();
+
+    map.put("name", name);
+    map.put("address",address);
+
+    System.out.println(map);
+
+    return map;
+  }
+
+
+  private void scan(Result result) {
+    if(!mBluetoothAdapter.isDiscovering()){
+      mBluetoothAdapter.cancelDiscovery();
+    }
+    mBluetoothAdapter.startDiscovery();
+
+    IntentFilter filter = new IntentFilter();
+    filter.addAction(BluetoothDevice.ACTION_FOUND);
+    filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+    context.registerReceiver(receiver, filter);
+
+    pairedDevices = mBluetoothAdapter.getBondedDevices();
+    List<Map<String,String>> mapList = new ArrayList<>();
+    Map<String, String> map = new HashMap<String, String>();
+    for (BluetoothDevice bt : pairedDevices) {
+      map.put("name", bt.getName());
+      map.put("address",bt.getAddress());
+      mapList.add(map);
+      toMap(bt);
+      System.out.println(bt);
+    }
+
+    result.success(mapList);
+  }
 
 }
 
@@ -591,16 +695,25 @@ class DevicesModel{
     this.deviceAddress = deviceAddress;
   }
 
+  public boolean isStateDevice() {
+    return stateDevice;
+  }
+
+  public void setStateDevice(boolean stateDevice) {
+    this.stateDevice = stateDevice;
+  }
 
   String deviceName;
   String deviceAddress;
+  boolean stateDevice;
 
-
-  DevicesModel(String deviceName, String deviceAddress){
+  public DevicesModel(String deviceName, String deviceAddress, boolean stateDevice) {
     this.deviceName = deviceName;
     this.deviceAddress = deviceAddress;
+    this.stateDevice = stateDevice;
   }
+
   String toDescription(){
-    return deviceName + "|" + deviceAddress;
+    return deviceName + "|" + deviceAddress + "|" + stateDevice;
   }
 }
