@@ -1,19 +1,15 @@
-import 'package:clv_nhacvo_print/src/event_print_pos.dart';
-import 'package:clv_nhacvo_print/src/bluetooth_code.dart';
-import 'package:flutter/material.dart';
-import 'DevicesModel.dart';
-
-import 'dart:collection';
 import 'dart:typed_data';
-import 'dart:math' as math;
 
 import 'package:bluetooth_print/bluetooth_print.dart';
 import 'package:bluetooth_print/bluetooth_print_model.dart';
-import 'package:flutter/services.dart';
+import 'package:clv_nhacvo_print/src/event_print_pos.dart';
+import 'package:flutter/material.dart';
+import 'package:image/image.dart' as img;
 import 'package:measure_size/measure_size.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:screenshot/screenshot.dart';
-import 'package:image/image.dart' as img;
+
+import 'DevicesModel.dart';
 
 void main() {
   runApp(const MyApp());
@@ -165,7 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<DevicesModel> list = [];
   bool isCheckState = false;
 
-  void _onConnect(String nameDevice,String addressDevice) async {
+  void _onConnect(String nameDevice, String addressDevice) async {
     // chỗ này đọc lệnh chắc mọi người cũng hiểu được :v
     _device = BluetoothDevice();
     _device.name = nameDevice;
@@ -206,38 +202,37 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _scanDevice() async {
     String listDevice = await EventPrintPos.scanBluetooth();
-    if(listDevice != ""){
+    if (listDevice != "") {
       List<dynamic> devices = listDevice.split("&");
-      for(dynamic device in devices){
+      for (dynamic device in devices) {
         String text = device.toString();
 
         List<dynamic> deviceInfo = text.split("|");
         DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1]);
         list.add(model);
       }
-    }else{
+    } else {
       list = [];
       print('Không có máy in nào !!!');
     }
   }
 
-
   bool isChoose = false;
   void onChangeStateBlue(value) async {
     if (value) {
       String scan = await EventPrintPos.onBluetooth();
-      if(scan.endsWith("scan")){
+      if (scan.endsWith("scan")) {
         String listDevice = await EventPrintPos.scanBluetooth();
-        if(listDevice != ""){
+        if (listDevice != "") {
           List<dynamic> devices = listDevice.split("&");
-          for(dynamic device in devices){
+          for (dynamic device in devices) {
             String text = device.toString();
 
             List<dynamic> deviceInfo = text.split("|");
             DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1]);
             list.add(model);
           }
-        }else{
+        } else {
           list = [];
           print('Không có máy in nào !!!');
         }
@@ -399,9 +394,9 @@ class _MyHomePageState extends State<MyHomePage> {
         .then((capturedImage) async {
       final originalImage = img.decodeImage(capturedImage);
       img.Image fixedImage;
-      fixedImage = img.copyRotate(originalImage, -90);
+      fixedImage = img.copyRotate(originalImage, 0);
       var result =
-      await EventPrintPos.sendSignalPrint(img.encodeJpg(fixedImage),1);
+          await EventPrintPos.sendSignalPrint(img.encodeJpg(fixedImage), 1);
       var _sendData = <String, dynamic>{
         "bitmapInput": result,
         "printerDpi": 190,
@@ -447,7 +442,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ));
   }
 
-  Widget deviceBluetooth(){
+  Widget deviceBluetooth() {
     return Row(
       children: <Widget>[
         Expanded(
@@ -455,27 +450,30 @@ class _MyHomePageState extends State<MyHomePage> {
             height: 60.0,
             child: list.isEmpty
                 ? Center(child: Text("No printer !!!"))
-                :ListView.builder(
-              itemCount: list.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  child: ListTile(
-                    title:  Text(list[index].name == "null" ? " Unknown" : " " +  list[index].name,style: TextStyle(color: Colors.grey,fontSize: 13)),
-                    leading: Icon( Icons.print_outlined),
-                    onTap: (){
-                      _onConnect(list[index].name,list[index].address);
+                : ListView.builder(
+                    itemCount: list.length,
+                    itemBuilder: (context, index) {
+                      return Card(
+                        child: ListTile(
+                          title: Text(
+                              list[index].name == "null"
+                                  ? " Unknown"
+                                  : " " + list[index].name,
+                              style:
+                                  TextStyle(color: Colors.grey, fontSize: 13)),
+                          leading: Icon(Icons.print_outlined),
+                          onTap: () {
+                            _onConnect(list[index].name, list[index].address);
+                          },
+                        ),
+                      );
                     },
                   ),
-                );
-              },
-            ),
-
           ),
         ),
       ],
     );
   }
-
 
   TableBorder BoderCustom() {
     return TableBorder.all(
@@ -540,14 +538,14 @@ class _MyHomePageState extends State<MyHomePage> {
                                       color: Colors.black87,
                                       fontSize: 22,
                                       fontWeight: FontWeight.bold)
-                                //
-                                // Theme.of(context)
-                                //     .textTheme
-                                //     .headline4
-                                //     .copyWith(
-                                //         color: Colors.black87,
-                                //         fontWeight: FontWeight.bold),
-                              ),
+                                  //
+                                  // Theme.of(context)
+                                  //     .textTheme
+                                  //     .headline4
+                                  //     .copyWith(
+                                  //         color: Colors.black87,
+                                  //         fontWeight: FontWeight.bold),
+                                  ),
                               Text("HoChiMinh,VietNam",
                                   style: TextStyle(
                                     color: Colors.black87,
@@ -575,13 +573,13 @@ class _MyHomePageState extends State<MyHomePage> {
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold)
 
-                                  // Theme.of(context)
-                                  //     .textTheme
-                                  //     .subtitle1
-                                  //     .copyWith(
-                                  //         color: Colors.black87,
-                                  //         fontWeight: FontWeight.bold),
-                                ),
+                                    // Theme.of(context)
+                                    //     .textTheme
+                                    //     .subtitle1
+                                    //     .copyWith(
+                                    //         color: Colors.black87,
+                                    //         fontWeight: FontWeight.bold),
+                                    ),
                               ),
                             ]),
                           ],
@@ -599,11 +597,11 @@ class _MyHomePageState extends State<MyHomePage> {
                                     child: Text("DO_20211123_W46_0059",
                                         style: TextStyle(
                                             color: Colors.black87, fontSize: 14)
-                                      // Theme.of(context)
-                                      //     .textTheme
-                                      //     .subtitle1
-                                      //     .copyWith(color: Colors.black87)
-                                    ),
+                                        // Theme.of(context)
+                                        //     .textTheme
+                                        //     .subtitle1
+                                        //     .copyWith(color: Colors.black87)
+                                        ),
                                   )),
                             ]),
                           ],
@@ -647,11 +645,11 @@ class _MyHomePageState extends State<MyHomePage> {
                                   padding: const EdgeInsets.all(10),
                                   child: const Center(
                                     child:
-                                    Text("AD-OSP-0433 / PN-20210708-3194",
-                                        style: TextStyle(
-                                          color: Colors.black87,
-                                          fontSize: 14,
-                                        )),
+                                        Text("AD-OSP-0433 / PN-20210708-3194",
+                                            style: TextStyle(
+                                              color: Colors.black87,
+                                              fontSize: 14,
+                                            )),
                                   )),
                             ]),
                           ],
