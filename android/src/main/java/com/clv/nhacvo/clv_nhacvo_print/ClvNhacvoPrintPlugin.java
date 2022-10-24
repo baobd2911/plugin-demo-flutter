@@ -619,7 +619,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
         }
       }else if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)){
         if(!check){
-          channel.invokeMethod(ACTION_NO_PRINTER,null);
+          _channel.invokeMethod(ACTION_NO_PRINTER,null);
         }
         check = false;
       }
