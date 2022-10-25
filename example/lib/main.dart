@@ -2,7 +2,9 @@ import 'dart:typed_data';
 
 import 'package:bluetooth_print/bluetooth_print.dart';
 import 'package:bluetooth_print/bluetooth_print_model.dart';
+import 'package:clv_nhacvo_print/src/bluetooth_code.dart';
 import 'package:clv_nhacvo_print/src/event_print_pos.dart';
+import 'package:clv_nhacvo_print/src/flutter_scan_bluetooth.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:measure_size/measure_size.dart';
@@ -84,22 +86,24 @@ class _MyHomePageState extends State<MyHomePage> {
     _bluetooth.devices.listen((device) {
       _data = device.name;
       setState(() {
-        if(device.name.endsWith("_noDevice")){
+        if (device.name.endsWith("_noDevice")) {
           print('No Device !!!!!');
-        }else{
-          if(list.isEmpty){
-            DevicesModel model = DevicesModel(device.name,device.address,device.paired);
+        } else {
+          if (list.isEmpty) {
+            DevicesModel model =
+                DevicesModel(device.name, device.address, device.paired);
             list.add(model);
-          }else{
+          } else {
             bool check = false;
-            for(int i=0; i<list.length; i++){
-              if(list[i].address.endsWith(device.address)){
+            for (int i = 0; i < list.length; i++) {
+              if (list[i].address.endsWith(device.address)) {
                 check = true;
                 return;
               }
             }
-            if(!check){
-              DevicesModel model = DevicesModel(device.name,device.address,device.paired);
+            if (!check) {
+              DevicesModel model =
+                  DevicesModel(device.name, device.address, device.paired);
               list.add(model);
             }
           }
@@ -113,7 +117,6 @@ class _MyHomePageState extends State<MyHomePage> {
     //     _data += 'scan stopped\n';
     //   });
     // });
-
   }
 
   Future<void> initBluetooth() async {
@@ -246,7 +249,8 @@ class _MyHomePageState extends State<MyHomePage> {
         String text = device.toString();
 
         List<dynamic> deviceInfo = text.split("|");
-        DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1],deviceInfo[2]);
+        DevicesModel model =
+            DevicesModel(deviceInfo[0], deviceInfo[1], deviceInfo[2]);
         list.add(model);
       }
     } else {
@@ -260,20 +264,22 @@ class _MyHomePageState extends State<MyHomePage> {
     if (value) {
       String scan = await EventPrintPos.onBluetooth();
       if (scan.endsWith("scan")) {
-        String listDevice = await EventPrintPos.scanBluetooth();
-        if (listDevice != "") {
-          List<dynamic> devices = listDevice.split("&");
-          for (dynamic device in devices) {
-            String text = device.toString();
-
-            List<dynamic> deviceInfo = text.split("|");
-            DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1]);
-            list.add(model);
-          }
-        } else {
-          list = [];
-          print('Không có máy in nào !!!');
-        }
+        // String listDevice = await EventPrintPos.scanBluetooth();
+        // if(listDevice != ""){
+        //   List<dynamic> devices = listDevice.split("&");
+        //   for(dynamic device in devices){
+        //     String text = device.toString();
+        //
+        //     List<dynamic> deviceInfo = text.split("|");
+        //     bool stateDevice =  deviceInfo[2] == "true" ? true : false;
+        //     print(stateDevice);
+        //     DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1],stateDevice);
+        //     list.add(model);
+        //   }
+        // }else{
+        //   list = [];
+        //   print('Không có máy in nào !!!');
+        // }
         // _scanDevice();
 
         list = [];
@@ -436,7 +442,7 @@ class _MyHomePageState extends State<MyHomePage> {
         .then((capturedImage) async {
       final originalImage = img.decodeImage(capturedImage);
       img.Image fixedImage;
-      fixedImage = img.copyRotate(originalImage, 0);
+      fixedImage = img.copyRotate(originalImage, -90);
       var result =
           await EventPrintPos.sendSignalPrint(img.encodeJpg(fixedImage), 1);
       var _sendData = <String, dynamic>{
@@ -493,21 +499,39 @@ class _MyHomePageState extends State<MyHomePage> {
             child: list.isEmpty
                 ? Center(child: Text("No printer !!!"))
                 : ListView.builder(
+                    shrinkWrap: true,
                     itemCount: list.length,
                     itemBuilder: (context, index) {
                       return Card(
-                        child: ListTile(
-                          title: Text(
-                              list[index].name == "null"
-                                  ? " Unknown"
-                                  : " " + list[index].name,
-                              style:
-                                  TextStyle(color: Colors.grey, fontSize: 13)),
-                          leading: Icon(Icons.print_outlined),
-                          onTap: () {
-                            _onConnect(list[index].name, list[index].address);
-                          },
-                        ),
+                        child: list[index].state == true
+                            ? ListTile(
+                                title: Text(
+                                    list[index].name == "null"
+                                        ? " Unknown"
+                                        : " " + list[index].name,
+                                    style: TextStyle(
+                                        color: Colors.grey, fontSize: 13)),
+                                leading: Icon(Icons.check_circle),
+                                trailing: Icon(Icons.check_circle),
+                                onTap: () {
+                                  _onConnect(
+                                      list[index].name, list[index].address);
+                                },
+                              )
+                            : ListTile(
+                                title: Text(
+                                    list[index].name == "null"
+                                        ? " Unknown"
+                                        : " " + list[index].name,
+                                    style: TextStyle(
+                                        color: Colors.grey, fontSize: 13)),
+                                leading: Icon(Icons.print),
+                                trailing: Icon(Icons.check_circle),
+                                onTap: () {
+                                  _onConnect(
+                                      list[index].name, list[index].address);
+                                },
+                              ),
                       );
                     },
                   ),
