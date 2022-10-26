@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bluetooth_print/bluetooth_print_model.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 
@@ -31,6 +32,7 @@ class BluetoothDeviceScan {
 class FlutterScanBluetooth {
   static final _singleton = FlutterScanBluetooth._();
   final MethodChannel _channel = const MethodChannel('flutter_scan_bluetooth');
+  static const MethodChannel channelConnect = MethodChannel('com.clv.demo/connect');
   List<BluetoothDeviceScan> _pairedDevices = [];
   final StreamController<BluetoothDeviceScan> _controller = StreamController.broadcast();
   final StreamController<bool> _scanStopped = StreamController.broadcast();
@@ -61,6 +63,9 @@ class FlutterScanBluetooth {
   Future<void> requestPermissions() async {
     await _channel.invokeMethod('action_request_permissions');
   }
+
+  Future<dynamic> connect(BluetoothDevice device) =>
+      channelConnect.invokeMethod('connectDevice', device.toJson());
 
   Future<void> startScan() async {
     _pairedDevices = [];

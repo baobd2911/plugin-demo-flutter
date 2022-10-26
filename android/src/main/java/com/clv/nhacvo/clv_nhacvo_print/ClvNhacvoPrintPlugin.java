@@ -75,6 +75,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 
   private MethodChannel channel;
   private MethodChannel _channel;
+  private MethodChannel channelConnect;
   private MethodChannel channelPrint;
   private MethodChannel getListBluetoothPrinters;
   private MethodChannel checkState;
@@ -145,6 +146,9 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       else if (call.method.equals("action_start_scan")) {
         scan(result);
       }
+      else if (call.method.equals("connectDevice")) {
+        connect(result,arguments);
+      }
     } catch (Exception e) {
       result.error("500", "Server Error", e.getMessage());
     }
@@ -158,6 +162,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     getListBluetoothPrinters.setMethodCallHandler(null);
     _channel.setMethodCallHandler(null);
     checkState.setMethodCallHandler(null);
+    channelConnect.setMethodCallHandler(null);
     pluginBinding = null;
 
   }
@@ -189,11 +194,13 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     channelPrint.setMethodCallHandler(null);
     getListBluetoothPrinters.setMethodCallHandler(null);
     checkState.setMethodCallHandler(null);
+    channelConnect.setMethodCallHandler(null);
     channel = null;
     _channel = null;
     channelPrint = null;
     getListBluetoothPrinters = null;
     checkState = null;
+    channelConnect = null;
     mBluetoothAdapter = null;
     application = null;
   }
@@ -219,11 +226,13 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       channelPrint = new MethodChannel(messenger, "com.clv.demo/print");
       getListBluetoothPrinters = new MethodChannel(messenger, "com.clv.demo/getListBluetoothPrinters");
       checkState = new MethodChannel(messenger, "com.clv.demo/checkState");
+      channelConnect = new MethodChannel(messenger, "com.clv.demo/connect");
       channel.setMethodCallHandler(this);
       _channel.setMethodCallHandler(this);
       channelPrint.setMethodCallHandler(this);
       getListBluetoothPrinters.setMethodCallHandler(this);
       checkState.setMethodCallHandler(this);
+      channelConnect.setMethodCallHandler(this);
       mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
       mBluetoothAdapter.startDiscovery();
       if (registrar != null) {
@@ -653,8 +662,8 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 
     pairedDevices = mBluetoothAdapter.getBondedDevices();
     List<Map<String,String>> mapList = new ArrayList<>();
-    Map<String, String> map = new HashMap<String, String>();
     for (BluetoothDevice bt : pairedDevices) {
+      Map<String, String> map = new HashMap<String, String>();
       map.put("name", bt.getName());
       map.put("address",bt.getAddress());
       mapList.add(map);
@@ -663,6 +672,20 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     }
 
     result.success(mapList);
+  }
+
+  private void connect(final Result result, Map<String, Object> args) {
+    if (args.containsKey("address")) {
+      String address = (String) args.get("address");
+      BluetoothDevice device;
+      device = mBluetoothAdapter.getRemoteDevice(address);
+      BluetoothConnection connection = new BluetoothConnection(device);
+      try {
+        connection.connect();
+      }catch (Exception e){
+        System.out.println(e);
+      }
+    }
   }
 
 }

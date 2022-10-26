@@ -1,6 +1,7 @@
 package com.clv.nhacvo.printer.connection.bluetooth;
 
 import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.os.ParcelUuid;
@@ -58,21 +59,31 @@ public class BluetoothConnection extends DeviceConnection {
             throw new EscPosConnectionException("Bluetooth device is not connected.");
         }
 
-        ParcelUuid[] uuids = this.device.getUuids();
-        UUID uuid = (uuids != null && uuids.length > 0) ? uuids[0].getUuid() : UUID.randomUUID();
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        UUID uuid = this.getDeviceUUID();
 
         try {
             this.socket = this.device.createRfcommSocketToServiceRecord(uuid);
+            bluetoothAdapter.cancelDiscovery();
             this.socket.connect();
             this.stream = this.socket.getOutputStream();
             this.data = new byte[0];
         } catch (IOException e) {
             e.printStackTrace();
-            this.socket = null;
-            this.stream = null;
+            this.disconnect();
             throw new EscPosConnectionException("Unable to connect to bluetooth device.");
         }
         return this;
+    }
+
+    /**
+     * Get bluetooth device UUID
+     */
+    protected UUID getDeviceUUID() {
+        // https://developer.android.com/reference/android/bluetooth/BluetoothDevice - "00001101-0000-1000-8000-00805f9b34fb" SPP UUID
+        ParcelUuid[] uuids = device.getUuids();
+        return (uuids != null && uuids.length > 0) ? uuids[0].getUuid() : UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
     }
 
     /**
