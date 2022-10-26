@@ -445,14 +445,14 @@ class _MyHomePageState extends State<MyHomePage> {
       fixedImage = img.copyRotate(originalImage, -90);
       var result =
           await EventPrintPos.sendSignalPrint(img.encodeJpg(fixedImage), 1);
-      var _sendData = <String, dynamic>{
-        "bitmapInput": result,
-        "printerDpi": 200, //190
-        "printerWidthMM": int.parse('80'),
-        "printerNbrCharactersPerLine": 32,
-        "widthMax": 580,
-        "heightMax": 400,
-      };
+      // var _sendData = <String, dynamic>{
+      //   "bitmapInput": result,
+      //   "printerDpi": 190, //190
+      //   "printerWidthMM": int.parse('80'),
+      //   "printerNbrCharactersPerLine": 32,
+      //   "widthMax": 580, //580
+      //   "heightMax": 400, //400
+      // };
       print('TEXT: ' + result["message"]);
       print(result);
     }).catchError((onError) {
