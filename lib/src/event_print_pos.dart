@@ -41,8 +41,8 @@ class EventPrintPos {
       "printerDpi": 180, //190
       "printerWidthMM": int.parse('80'),
       "printerNbrCharactersPerLine": 32,
-      "widthMax": 580, //580
-      "heightMax": 400, //400
+      "widthMax": 600, //580
+      "heightMax": 420, //400
       "countPage": countPage
     };
     var result = await channelPrint.invokeMethod("onPrint", _sendData);
