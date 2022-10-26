@@ -442,12 +442,12 @@ class _MyHomePageState extends State<MyHomePage> {
         .then((capturedImage) async {
       final originalImage = img.decodeImage(capturedImage);
       img.Image fixedImage;
-      fixedImage = img.copyRotate(originalImage, 0);
+      fixedImage = img.copyRotate(originalImage, -90);
       var result =
           await EventPrintPos.sendSignalPrint(img.encodeJpg(fixedImage), 1);
       var _sendData = <String, dynamic>{
         "bitmapInput": result,
-        "printerDpi": 190,
+        "printerDpi": 200, //190
         "printerWidthMM": int.parse('80'),
         "printerNbrCharactersPerLine": 32,
         "widthMax": 580,
