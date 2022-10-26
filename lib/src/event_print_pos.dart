@@ -38,11 +38,11 @@ class EventPrintPos {
       Uint8List capturedImage, int countPage) async {
     var _sendData = <String, dynamic>{
       "bitmapInput": capturedImage,
-      "printerDpi": 190, //190
+      "printerDpi": 160, //190
       "printerWidthMM": int.parse('80'),
       "printerNbrCharactersPerLine": 32,
-      "widthMax": 580,
-      "heightMax": 400,
+      "widthMax": 580, //580
+      "heightMax": 400, //400
       "countPage": countPage
     };
     var result = await channelPrint.invokeMethod("onPrint", _sendData);
@@ -69,9 +69,9 @@ class EventPrintPos {
     return result;
   }
 
-
   static Future<String> scanBluetooth() async {
-    String mList = await getListBluetoothPrinters.invokeMethod("scanDeviceBluetooth");
+    String mList =
+        await getListBluetoothPrinters.invokeMethod("scanDeviceBluetooth");
     print(mList);
     return Future.value(mList);
   }
