@@ -663,12 +663,14 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     pairedDevices = mBluetoothAdapter.getBondedDevices();
     List<Map<String,String>> mapList = new ArrayList<>();
     for (BluetoothDevice bt : pairedDevices) {
-      Map<String, String> map = new HashMap<String, String>();
-      map.put("name", bt.getName());
-      map.put("address",bt.getAddress());
-      mapList.add(map);
-      toMap(bt);
-      System.out.println(bt);
+      if(bt.getBluetoothClass().getDeviceClass() == 1664){
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("name", bt.getName());
+        map.put("address",bt.getAddress());
+        mapList.add(map);
+        toMap(bt);
+        System.out.println(bt);
+      }
     }
 
     result.success(mapList);
