@@ -16,6 +16,7 @@ public class BluetoothConnection extends DeviceConnection {
 
     private BluetoothDevice device;
     private BluetoothSocket socket = null;
+    boolean check = false;
 
     /**
      * Create un instance of BluetoothConnection.
@@ -69,12 +70,18 @@ public class BluetoothConnection extends DeviceConnection {
             this.socket.connect();
             this.stream = this.socket.getOutputStream();
             this.data = new byte[0];
+            check = true;
         } catch (IOException e) {
             e.printStackTrace();
             this.disconnect();
+            check = false;
             throw new EscPosConnectionException("Unable to connect to bluetooth device.");
         }
         return this;
+    }
+
+    public boolean isCheck(){
+        return check;
     }
 
     /**

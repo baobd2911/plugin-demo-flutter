@@ -687,6 +687,12 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       }catch (Exception e){
         System.out.println(e);
       }
+      boolean checkState = connection.isCheck();
+      if(checkState){
+        result.success(true);
+      }else{
+        result.success(false);
+      }
     }
   }
 
