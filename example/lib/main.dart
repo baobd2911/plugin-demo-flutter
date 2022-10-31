@@ -123,8 +123,8 @@ class _MyHomePageState extends State<MyHomePage> {
     bluetoothPrint.startScan(
         timeout: const Duration(seconds: 4)); // scan trong 4s, tìm device
 
-    bool isConnected = await bluetoothPrint.isConnected;
-    bluetoothPrint.state.listen((state) {
+    bool isConnected = await _bluetooth.isConnected;
+    _bluetooth.state.listen((state) {
       print('cur device status: $state');
       switch (state) {
         case BluetoothCode.CONNECTED:
