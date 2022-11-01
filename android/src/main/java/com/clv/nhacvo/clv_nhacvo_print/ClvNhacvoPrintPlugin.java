@@ -304,8 +304,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
             int heightTemp = decodedByte.getHeight();
 
 
-            widthTemp = 580 * countPage;
-//            widthTemp = widthMax < 580 ? 580 : widthMax;
+            widthTemp = widthMax < 580 ? 580 : widthMax;
 
 //          if(heightTemp > 900){
 //            heightTemp = 900; // 900
@@ -315,7 +314,6 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 //          else
 //          {
             heightTemp = 900 * countPage;
-//            heightTemp = 900;
 //          }
 
             System.out.println( "-----------------Start--------------------");
