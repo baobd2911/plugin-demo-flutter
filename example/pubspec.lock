@@ -22,15 +22,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.0"
-  bluetooth_print:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: master
-      resolved-ref: "55bcd82971d1a322f2d5833c25de50be834eccdd"
-      url: "https://github.com/baobd2911/bluetooth_print.git"
-    source: git
-    version: "3.0.1"
   boolean_selector:
     dependency: transitive
     description:
@@ -181,13 +172,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.0"
-  rxdart:
-    dependency: transitive
-    description:
-      name: rxdart
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.27.5"
   screenshot:
     dependency: "direct main"
     description:

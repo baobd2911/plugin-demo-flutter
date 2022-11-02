@@ -248,7 +248,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       checkState.setMethodCallHandler(this);
       channelConnect.setMethodCallHandler(this);
       mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-      mBluetoothAdapter.startDiscovery();
+//      mBluetoothAdapter.startDiscovery();
       if (registrar != null) {
         // V1 embedding setup for activity listeners.
         registrar.addRequestPermissionsResultListener(this);
@@ -670,6 +670,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     mBluetoothAdapter.startDiscovery();
 
     IntentFilter filter = new IntentFilter();
+    checkPermission();
     filter.addAction(BluetoothDevice.ACTION_FOUND);
     filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
     context.registerReceiver(receiver, filter);
