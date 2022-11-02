@@ -646,6 +646,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
           _channel.invokeMethod(ACTION_NO_PRINTER,null);
         }
         check = false;
+        context.unregisterReceiver(receiver);
       }
     }
   };
