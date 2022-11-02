@@ -114,6 +114,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   }
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
+    checkPermission();
     globalChannelResult = result;
     try {
       Map<String, Object> arguments = call.arguments();
@@ -249,7 +250,6 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       channelConnect.setMethodCallHandler(this);
       mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
       mBluetoothAdapter.startDiscovery();
-      checkPermission();
       if (registrar != null) {
         // V1 embedding setup for activity listeners.
         registrar.addRequestPermissionsResultListener(this);
