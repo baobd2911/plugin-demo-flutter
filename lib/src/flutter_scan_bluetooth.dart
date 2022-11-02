@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bluetooth_print/bluetooth_print_model.dart';
+import 'package:clv_nhacvo_print/src/bluetooth_print_model.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 

@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:bluetooth_print/bluetooth_print.dart';
-import 'package:bluetooth_print/bluetooth_print_model.dart';
+import 'package:clv_nhacvo_print/src/bluetooth_print_model.dart';
 import 'package:clv_nhacvo_print/src/bluetooth_code.dart';
 import 'package:clv_nhacvo_print/src/event_print_pos.dart';
 import 'package:clv_nhacvo_print/src/flutter_scan_bluetooth.dart';
@@ -61,7 +60,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
+  // BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
 
   String _data = '';
   bool _scanning = false;
@@ -120,8 +119,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> initBluetooth() async {
-    bluetoothPrint.startScan(
-        timeout: const Duration(seconds: 4)); // scan trong 4s, tìm device
+    // bluetoothPrint.startScan(
+    //     timeout: const Duration(seconds: 4)); // scan trong 4s, tìm device
 
     bool isConnected = await _bluetooth.isConnected;
     _bluetooth.state.listen((state) {
@@ -196,7 +195,7 @@ class _MyHomePageState extends State<MyHomePage> {
         _connected = true;
       });
     }
-    bluetoothPrint.stopScan();
+    // bluetoothPrint.stopScan();
   }
 
   List<DevicesModel> list = [];
@@ -211,7 +210,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _device.connected = true;
 
     if (_device?.address != null) {
-      await bluetoothPrint.connect(_device);
+      await _bluetooth.connect(_device);
     } else {
       setState(() {
         tips = 'Vui lòng chọn thiết bị';
@@ -221,7 +220,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _onDisconnect() async {
-    await bluetoothPrint.disconnect();
+    // await bluetoothPrint.disconnect();
     setState(() {
       _connected = false;
     });
@@ -315,8 +314,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: RefreshIndicator(
-        onRefresh: () =>
-            bluetoothPrint.startScan(timeout: Duration(seconds: 4)),
+        onRefresh: () {},
         child: SizedBox(
           width: double.infinity,
           // Center is a layout widget. It takes a single child and positions it
@@ -394,24 +392,24 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
-      floatingActionButton: StreamBuilder<bool>(
-        stream: bluetoothPrint.isScanning,
-        initialData: false,
-        builder: (c, snapshot) {
-          if (snapshot.data) {
-            return FloatingActionButton(
-              child: const Icon(Icons.stop),
-              onPressed: () => bluetoothPrint.stopScan(),
-              backgroundColor: Colors.red,
-            );
-          } else {
-            return FloatingActionButton(
-                child: const Icon(Icons.search),
-                onPressed: () => bluetoothPrint.startScan(
-                    timeout: const Duration(seconds: 4)));
-          }
-        },
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      // floatingActionButton: StreamBuilder<bool>(
+      //   stream: bluetoothPrint.isScanning,
+      //   initialData: false,
+      //   builder: (c, snapshot) {
+      //     if (snapshot.data) {
+      //       return FloatingActionButton(
+      //         child: const Icon(Icons.stop),
+      //         onPressed: () => bluetoothPrint.stopScan(),
+      //         backgroundColor: Colors.red,
+      //       );
+      //     } else {
+      //       return FloatingActionButton(
+      //           child: const Icon(Icons.search),
+      //           onPressed: () => bluetoothPrint.startScan(
+      //               timeout: const Duration(seconds: 4)));
+      //     }
+      //   },
+      // ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
