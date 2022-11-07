@@ -301,11 +301,17 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 
             byte[]  bitMapData = bitmapInput;// stream.toByteArray()
             Bitmap decodedByte = BitmapFactory.decodeByteArray(bitMapData, 0, bitMapData.length);
-            int widthTemp = decodedByte.getWidth();
-            int heightTemp = decodedByte.getHeight();
+            double widthSreenshot = decodedByte.getWidth();
+            double heightSreenshot = decodedByte.getHeight();
+            System.out.println(widthSreenshot);
+            System.out.println(heightSreenshot);
+            double widthTemp = 570;
+            double heightTemp = 570.0/(widthSreenshot/heightSreenshot);
+            System.out.println(widthTemp);
+            System.out.println(heightTemp);
 
 
-            widthTemp = widthMax < 580 ? 580 : widthMax;
+//            widthTemp = widthMax < 580 ? 580 : widthMax;
 
 //          if(heightTemp > 900){
 //            heightTemp = 900; // 900
@@ -314,15 +320,15 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 //          }
 //          else
 //          {
-            heightTemp = 900 * countPage;
+//            heightTemp = heightTemp * countPage;
 //          }
 
             System.out.println( "-----------------Start--------------------");
             System.out.println( "Input:  " + widthMax + " || " + heightMax);
-            System.out.println( "Current:  " + widthTemp + " || " + heightTemp);
+            System.out.println( "Current:  " + (int)widthTemp + " || " + (int)heightTemp);
             System.out.println( "------------------End---------------------");
 
-            Bitmap resizedBitmap = Bitmap.createScaledBitmap(decodedByte, widthTemp, heightTemp, false);
+            Bitmap resizedBitmap = Bitmap.createScaledBitmap(decodedByte, (int)widthTemp, (int)heightTemp, false);
             decodedByte.recycle();
             int width = resizedBitmap.getWidth();
             int height = resizedBitmap.getHeight();
