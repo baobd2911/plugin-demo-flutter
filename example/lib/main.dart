@@ -442,7 +442,7 @@ class _MyHomePageState extends State<MyHomePage> {
       img.Image fixedImage;
       fixedImage = img.copyRotate(originalImage, -90);
       var result =
-          await EventPrintPos.sendSignalPrint(img.encodeJpg(fixedImage), 1);
+          await EventPrintPos.sendSignalPrint(capturedImage, 1);
       // var _sendData = <String, dynamic>{
       //   "bitmapInput": result,
       //   "printerDpi": 190, //190
