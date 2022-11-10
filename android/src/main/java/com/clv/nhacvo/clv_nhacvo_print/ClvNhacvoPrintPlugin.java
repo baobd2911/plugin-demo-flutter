@@ -17,11 +17,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.LocationManager;
-import android.net.Uri;
-import android.os.Build;
-import android.os.ParcelUuid;
-import android.os.Parcelable;
-import android.provider.Settings;
 import android.util.Log;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -50,17 +45,11 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -79,22 +68,18 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   private MethodChannel _channel;
   private MethodChannel channelConnect;
   private MethodChannel channelPrint;
-  private MethodChannel getListBluetoothPrinters;
-  private MethodChannel checkState;
   private EventChannel stateChannel;
-  private LocationRequest locationRequest;
   private static final int REQUEST_CHECK_SETTINGS = 10001;
-  private ArrayList<String> mDeviceList = new ArrayList<String>();
   private BluetoothAdapter mBluetoothAdapter;
   Set<BluetoothDevice> pairedDevices;
-  ArrayList<DevicesModel> deviceResult = new ArrayList<DevicesModel>();
-  ArrayList<DevicesModel> scanDevice = new ArrayList<DevicesModel>();
-  ArrayList<DevicesModel> connectedDevice = new ArrayList<DevicesModel>();
   public static final int PERMISSION_BLUETOOTH = 1;
-  private Object initializationLock = new Object();
+  private final Object initializationLock = new Object();
   private MethodChannel.Result globalChannelResult;
-  private FlutterEngine flutterEngine;
   private ThreadPool threadPool;
+  private static final String ACTION_NEW_DEVICE = "action_new_device";
+  private static final String ACTION_NO_PRINTER = "action_no_printer";
+  private boolean checkDevice = false;
+  private static final int REQUEST_FINE_LOCATION_PERMISSIONS = 1452;
 
 
   private FlutterPluginBinding pluginBinding;
@@ -109,7 +94,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 
   }
   @Override
-  public void onReattachedToActivityForConfigChanges(ActivityPluginBinding binding) {
+  public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
     onAttachedToActivity(binding);
   }
   @Override
@@ -119,14 +104,11 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     try {
       Map<String, Object> arguments = call.arguments();
       System.out.println("NHACVO_DEMO: "+ call.method);
-      if (call.method.toString() == "getPlatformVersion") {
+      if (call.method.toString().equals("getPlatformVersion")) {
         result.success("Android ${android.os.Build.VERSION.RELEASE}");
       } else  if (call.method.equals("getMessage")) {
         String message = "Android say hi!";
         result.success(message);
-      } else if (call.method.equals("getDevices")) {
-        ArrayList<DevicesModel> arrDevice = onGetDevicesBluetooth();
-        result.success(arrDevice);
       } else if (call.method.equals("onPrint")) {
         System.out.println("I am here onPrint");
         byte[] bitmapInput = (byte[]) arguments.get("bitmapInput");
@@ -134,27 +116,20 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
         int heightMax = (int) arguments.get("heightMax");
         int widthMax = (int) arguments.get("widthMax");
         int countPage = (int) arguments.get("countPage");
-        Map<String, Object> arrStatus = onPrint(bitmapInput, printerDpi, widthMax, heightMax, 0, countPage);
+        Map<String, Object> arrStatus = onPrint(bitmapInput, printerDpi, widthMax, heightMax, countPage);
         result.success(arrStatus);
       }else if (call.method.equals("onBluetooth")) {
         turnOnBluetooth();
       }else if (call.method.equals("offBluetooth")) {
         turnOffBluetooth();
       }
-      else if (call.method.equals("checkStateBluetooth")) {
-        boolean checkbluetooth = checkState();
-        result.success(checkbluetooth);
-      }
-      else if (call.method.equals("scanDeviceBluetooth")) {
-        bluetoothScanning();
-      }
-      else if (call.method.equals("action_start_scan")) {
-        scan(result);
+      else if (call.method.equals("scanDevice")) {
+        scanDevice(result);
       }
       else if (call.method.equals("connectDevice")) {
         connect(result,arguments);
       }
-      else if (call.method.equals("state")) {
+      else if (call.method.equals("stateBluetooth")) {
         state(result);
       }
       else if (call.method.equals("isConnected")) {
@@ -170,9 +145,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
     channelPrint.setMethodCallHandler(null);
     channel.setMethodCallHandler(null);
-    getListBluetoothPrinters.setMethodCallHandler(null);
     _channel.setMethodCallHandler(null);
-    checkState.setMethodCallHandler(null);
     channelConnect.setMethodCallHandler(null);
     pluginBinding = null;
 
@@ -183,7 +156,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   }
 
   @Override
-  public void onAttachedToActivity(ActivityPluginBinding binding) {
+  public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
     activityBinding = binding;
     setup(
             pluginBinding.getBinaryMessenger(),
@@ -191,7 +164,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
             activityBinding.getActivity(),
             null,
             activityBinding);
-    flutterEngine = new FlutterEngine(application);
+    FlutterEngine flutterEngine = new FlutterEngine(application);
   }
 
   @Override
@@ -203,15 +176,11 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     channel.setMethodCallHandler(null);
     _channel.setMethodCallHandler(null);
     channelPrint.setMethodCallHandler(null);
-    getListBluetoothPrinters.setMethodCallHandler(null);
-    checkState.setMethodCallHandler(null);
     channelConnect.setMethodCallHandler(null);
     stateChannel.setStreamHandler(null);
     channel = null;
     _channel = null;
     channelPrint = null;
-    getListBluetoothPrinters = null;
-    checkState = null;
     channelConnect = null;
     stateChannel = null;
     mBluetoothAdapter = null;
@@ -237,16 +206,12 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       channel = new MethodChannel(messenger, "com.clv.demo/print");
       _channel = new MethodChannel(messenger, "flutter_scan_bluetooth");
       channelPrint = new MethodChannel(messenger, "com.clv.demo/print");
-      getListBluetoothPrinters = new MethodChannel(messenger, "com.clv.demo/getListBluetoothPrinters");
-      checkState = new MethodChannel(messenger, "com.clv.demo/checkState");
       channelConnect = new MethodChannel(messenger, "com.clv.demo/connect");
-      stateChannel = new EventChannel(messenger, "stateBluetooth");
+      stateChannel = new EventChannel(messenger, "com.clv.demo/stateBluetooth");
       stateChannel.setStreamHandler(stateHandler);
       channel.setMethodCallHandler(this);
       _channel.setMethodCallHandler(this);
       channelPrint.setMethodCallHandler(this);
-      getListBluetoothPrinters.setMethodCallHandler(this);
-      checkState.setMethodCallHandler(this);
       channelConnect.setMethodCallHandler(this);
       mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
       mBluetoothAdapter.startDiscovery();
@@ -261,35 +226,15 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   }
 
 
-  private static final int REQUEST_FINE_LOCATION_PERMISSIONS = 1452;
-
-
-  private ArrayList<DevicesModel> onGetDevicesBluetooth() {
-    pairedDevices = mBluetoothAdapter.getBondedDevices();
-    deviceResult = new ArrayList<>();
-
-    for (BluetoothDevice bt : pairedDevices) {
-//      devices.add(new DevicesModel(bt.getName(), bt.getAddress()));
-    }
-    return deviceResult;
-  }
 
   private Map<String, Object> onPrint(
           byte[] bitmapInput,
           int printerDpi ,
           int heightMax ,
           int widthMax,
-          int callback,
           int countPage){
     Map<String, Object>  dataMap = new HashMap<>();
     String _message = "";
-//    if(callback < 3){
-//      callback +=1;
-//    }else{
-//      _message = "Callback Function Error";
-//      dataMap.put("message",_message);
-//      return dataMap;
-//    }
     for(int i = 0 ; i < 3 ; i++){
       try {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
@@ -299,8 +244,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
           if (connection != null) {
             EscPosPrinter printer = new EscPosPrinter(connection, printerDpi, 80f, 32);
 
-            byte[]  bitMapData = bitmapInput;// stream.toByteArray()
-            Bitmap decodedByte = BitmapFactory.decodeByteArray(bitMapData, 0, bitMapData.length);
+            Bitmap decodedByte = BitmapFactory.decodeByteArray(bitmapInput, 0, bitmapInput.length);
             double widthSreenshot = decodedByte.getWidth();
             double heightSreenshot = decodedByte.getHeight();
             System.out.println(widthSreenshot);
@@ -309,19 +253,6 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
             double heightTemp = 570.0/(widthSreenshot/heightSreenshot);
             System.out.println(widthTemp);
             System.out.println(heightTemp);
-
-
-//            widthTemp = widthMax < 580 ? 580 : widthMax;
-
-//          if(heightTemp > 900){
-//            heightTemp = 900; // 900
-//          }else if(heightTemp <200){
-//            heightTemp = 200; // 200
-//          }
-//          else
-//          {
-//            heightTemp = heightTemp * countPage;
-//          }
 
             System.out.println( "-----------------Start--------------------");
             System.out.println( "Input:  " + widthMax + " || " + heightMax);
@@ -350,11 +281,32 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       }
       catch (Exception e) {
         _message = "Error";
-        // println(e.getMessage());
       }
     }
     dataMap.put("message",_message);
     return dataMap;
+  }
+
+  // Check if permissions have been granted
+  public void checkPermission() {
+    if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+      mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+      mBluetoothAdapter.startDiscovery();
+    } else {
+      ActivityCompat.requestPermissions(activity, new String[]{
+              Manifest.permission.ACCESS_FINE_LOCATION,
+              Manifest.permission.ACCESS_COARSE_LOCATION,}, 1);
+    }
+  }
+
+  // Permission must be granted
+  @Override
+  public boolean onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    if (requestCode == REQUEST_FINE_LOCATION_PERMISSIONS) {
+      checkPermission();
+      return true;
+    }
+    return false;
   }
 
   private void turnOnBluetooth (){
@@ -363,7 +315,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       turnOnGPS();
       IntentFilter filter = new IntentFilter();
       filter.addAction(LocationManager.PROVIDERS_CHANGED_ACTION);
-      context.registerReceiver(getReceiver, filter);
+      context.registerReceiver(mReceiverGpsChanged, filter);
     }
     else{
       try {
@@ -377,7 +329,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
             Toast.makeText(context,"Bluetooth Turned ON",Toast.LENGTH_SHORT).show();
             IntentFilter filter = new IntentFilter();
             filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-            context.registerReceiver(mBroadcastReceiver1, filter);
+            context.registerReceiver(mReceiverBluetoothChanged, filter);
           }
         }
       }catch (Exception ex){
@@ -386,34 +338,9 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     }
   }
 
-  private boolean checkState(){
-    boolean check = false;
-    if(mBluetoothAdapter.isEnabled()){
-      System.out.println("State 1: Bluetooth turn on !!");
-      check = true;
-    }else{
-      System.out.println("State 1: Bluetooth turn off !!");
-      check = false;
-    }
-    return check;
-  }
 
-//  private final BroadcastReceiver brCheckState = new BroadcastReceiver() {
-//
-//    @Override
-//    public void onReceive(Context context, Intent intent) {
-//      final String action = intent.getAction();
-//      if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-//        if(mBluetoothAdapter.isEnabled()){
-//          System.out.println("State 1: Bluetooth turn on !!");
-//        }else{
-//          System.out.println("State 1: Bluetooth turn off !!");
-//        }
-//      }
-//    }
-//  };
-
-  private final BroadcastReceiver getReceiver = new BroadcastReceiver() {
+  // If Gps switches off to on, it will turn on bluetooth
+  private final BroadcastReceiver mReceiverGpsChanged = new BroadcastReceiver() {
     @Override
     public void onReceive( Context context, Intent intent )
     {
@@ -428,10 +355,10 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
             if(!mBluetoothAdapter.isEnabled() && manager.isProviderEnabled( LocationManager.GPS_PROVIDER )){
               activity.startActivityForResult(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE),1);
               Toast.makeText(context,"Bluetooth Turned ON",Toast.LENGTH_SHORT).show();
-              context.unregisterReceiver(getReceiver);
+              context.unregisterReceiver(mReceiverGpsChanged);
               IntentFilter filter = new IntentFilter();
               filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-              context.registerReceiver(mBroadcastReceiver1, filter);
+              context.registerReceiver(mReceiverBluetoothChanged, filter);
             }
           }
         }catch (Exception ex){
@@ -441,24 +368,20 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     }
   };
 
-
-  private final BroadcastReceiver mBroadcastReceiver1 = new BroadcastReceiver() {
-
+  // check if bluetooth is on then send message "scan" to flutter
+  private final BroadcastReceiver mReceiverBluetoothChanged = new BroadcastReceiver() {
     @Override
     public void onReceive(Context context, Intent intent) {
       final String action = intent.getAction();
 
       if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED) && mBluetoothAdapter.isEnabled()) {
         globalChannelResult.success("scan");
-        context.unregisterReceiver(mBroadcastReceiver1);
+        context.unregisterReceiver(mReceiverBluetoothChanged);
       }
     }
   };
 
   private void turnOffBluetooth (){
-    deviceResult = new ArrayList<>();
-    scanDevice = new ArrayList<>();
-    connectedDevice = new ArrayList<>();
     try {
       mBluetoothAdapter.disable();
       Toast.makeText(context,"Bluetooth Turned OFF", Toast.LENGTH_SHORT).show();
@@ -468,7 +391,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
   }
 
   private void turnOnGPS(){
-    locationRequest = LocationRequest.create();
+    LocationRequest locationRequest = LocationRequest.create();
     locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     locationRequest.setInterval(5000);
     locationRequest.setFastestInterval(2000);
@@ -480,162 +403,30 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     Task<LocationSettingsResponse> result = LocationServices.getSettingsClient(context.getApplicationContext())
             .checkLocationSettings(builder.build());
 
-    result.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
-      @Override
-      public void onComplete(@NonNull Task<LocationSettingsResponse> task) {
-        try {
-          LocationSettingsResponse response = task.getResult(ApiException.class);
-          Toast.makeText(context, "GPS is already tured on", Toast.LENGTH_SHORT).show();
-        } catch (ApiException e) {
-          switch (e.getStatusCode()) {
-            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-              try {
-                ResolvableApiException resolvableApiException = (ResolvableApiException)e;
-                resolvableApiException.startResolutionForResult(activity,REQUEST_CHECK_SETTINGS);
-              } catch (IntentSender.SendIntentException ex) {
-                ex.printStackTrace();
-              }
-              break;
-            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-              //Device does not have location
-              break;
-          }
+    result.addOnCompleteListener(task -> {
+      try {
+        task.getResult(ApiException.class);
+        Toast.makeText(context, "GPS is already turned on", Toast.LENGTH_SHORT).show();
+      } catch (ApiException e) {
+        switch (e.getStatusCode()) {
+          case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+            try {
+              ResolvableApiException resolvableApiException = (ResolvableApiException)e;
+              resolvableApiException.startResolutionForResult(activity,REQUEST_CHECK_SETTINGS);
+            } catch (IntentSender.SendIntentException ex) {
+              ex.printStackTrace();
+            }
+            break;
+          case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+            //Device does not have location
+            break;
         }
       }
     });
   }
 
-
-  private void bluetoothScanning(){
-    LocationManager manager = (LocationManager) context.getSystemService( Context.LOCATION_SERVICE );
-    deviceResult = new ArrayList<>();
-    scanDevice = new ArrayList<>();
-    connectedDevice = new ArrayList<>();
-    if(manager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-      IntentFilter filter = new IntentFilter();
-      checkPermission();
-      filter.addAction(BluetoothDevice.ACTION_FOUND);
-      filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-      context.registerReceiver(receiver, filter);
-    }else{
-      globalChannelResult.success("disable");
-    }
-  }
-
-
-  public void checkPermission() {
-    if (Build.VERSION.SDK_INT >= 23) {
-      if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && context.checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        mBluetoothAdapter.startDiscovery();
-      } else {
-        ActivityCompat.requestPermissions(activity, new String[]{
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,}, 1);
-      }
-    }
-  }
-
-  @Override
-  public boolean onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-    if (requestCode == REQUEST_FINE_LOCATION_PERMISSIONS) {
-      if (requestCode == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-//        mBluetoothAdapter.startDiscovery();
-      } else {
-        checkPermission();
-      }
-//      onRequestPermissionsResult(requestCode, permissions, grantResults);
-      return true;
-    }
-    return false;
-  }
-
-//  private final BroadcastReceiver receiver = new BroadcastReceiver() {
-//    public void onReceive(Context context, Intent intent) {
-//      String action = intent.getAction();
-//      // scan device
-//      if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-//        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-//        if(scanDevice.size()>0){
-//          boolean check = false;
-//          for (int i=0;i<scanDevice.size();i++){
-//            if(scanDevice.get(i).getDeviceAddress().equals(device.getAddress())){
-//              check = true;
-//              return;
-//            }
-//          }
-//          if(!check && device.getBluetoothClass().getDeviceClass() == 1664){
-//            scanDevice.add(new DevicesModel(device.getName(),device.getAddress(),false));
-//            System.out.println("Printer: " + device.getName() + " | "+ device.getAddress() + " | " + device.getUuids() + " | " + device.getBluetoothClass().getDeviceClass());
-//          }
-//        }else{
-//          if(device.getBluetoothClass().getDeviceClass() == 1664){
-//            scanDevice.add(new DevicesModel(device.getName(),device.getAddress(),false));
-//            System.out.println("Printer: " + device.getName() + " | "+ device.getAddress() + " | " + device.getUuids() + " | " + device.getBluetoothClass().getDeviceClass());
-//          }
-////          scanDevice.add(new DevicesModel(device.getName(),device.getAddress(),false));
-//        }
-//      }
-//      else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-//        String finalString = "";
-//        // device connected
-//        System.out.println(scanDevice);
-//        pairedDevices = mBluetoothAdapter.getBondedDevices();
-//        for (BluetoothDevice bt : pairedDevices) {
-//          if (bt.getBluetoothClass().getDeviceClass() == 1664) {
-//            connectedDevice.add(new DevicesModel(bt.getName(), bt.getAddress(),true));
-//          }
-////          for(int i = 0; i<scanDevice.size();i++){
-////            if(scanDevice.get(i).getDeviceAddress().equals(bt.getAddress())){
-////              if (bt.getBluetoothClass().getDeviceClass() == 1664) {
-////                connectedDevice.add(new DevicesModel(bt.getName(), bt.getAddress(),true));
-////              }
-////            }
-////          }
-//        }
-//        System.out.println("scanDevice: " + scanDevice.size());
-//        System.out.println("connectedDevice: " + connectedDevice.size());
-//
-//        deviceResult.addAll(scanDevice);
-//        deviceResult.addAll(connectedDevice);
-//
-//        for (int i = 0; i < deviceResult.size(); i++) {
-//          for (int j=i+1; j < deviceResult.size(); j++) {
-//            System.out.println("01: " + deviceResult.get(i).getDeviceAddress());
-//            System.out.println("02: " + deviceResult.get(j).getDeviceAddress());
-//            if(deviceResult.get(i).getDeviceAddress().equals(deviceResult.get(j).getDeviceAddress())) {
-//              deviceResult.remove(i);
-//            }
-//          }
-//        }
-//
-//        if(deviceResult.size() > 0){
-//          for (int i=0;i<deviceResult.size();i++){
-//            finalString = finalString + deviceResult.get(i).toDescription() + "&";
-//          }
-//          finalString = finalString.substring(0, finalString.length() - 1);
-//          System.out.println("Device 3: " + finalString);
-//          globalChannelResult.success(finalString);
-//          context.unregisterReceiver(receiver);
-//          mBluetoothAdapter.cancelDiscovery();
-//        }else{
-//          System.out.println("Khong co may in !!!");
-//          globalChannelResult.success(finalString);
-//          context.unregisterReceiver(receiver);
-//          mBluetoothAdapter.cancelDiscovery();
-//        }
-//      }
-//    }
-//  };
-
-  private static final String ACTION_NEW_DEVICE = "action_new_device";
-  private static final String ACTION_SCAN_STOPPED = "action_scan_stopped";
-  private static final String ACTION_NO_PRINTER = "action_no_printer";
-  private boolean check = false;
-  private List<Map<String,String>> listBondedDevice = new ArrayList<>();
-
-  private final BroadcastReceiver receiver = new BroadcastReceiver() {
+  // Scan devices recent
+  private final BroadcastReceiver mReceiverScanDevice = new BroadcastReceiver() {
     public void onReceive(Context context, Intent intent) {
       String action = intent.getAction();
       BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
@@ -643,35 +434,31 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
         if(device != null){
           if(device.getBluetoothClass().getDeviceClass() == 1664){
             _channel.invokeMethod(ACTION_NEW_DEVICE,toMap(device));
-            check = true;
+            checkDevice = true;
           }
-//          _channel.invokeMethod(ACTION_NEW_DEVICE,toMap(device));
         }
       }else if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)){
-        if(!check){
+        if(!checkDevice){
           _channel.invokeMethod(ACTION_NO_PRINTER,null);
         }
-        check = false;
-        context.unregisterReceiver(receiver);
+        checkDevice = false;
+        context.unregisterReceiver(mReceiverScanDevice);
       }
     }
   };
 
+  // save name and address to map
   private Map<String, String> toMap(BluetoothDevice device) {
     Map<String, String> map = new HashMap<>();
     String name = device.getName();
     String address = device.getAddress();
-
     map.put("name", name);
     map.put("address",address);
-
-    System.out.println(map);
-
     return map;
   }
 
-
-  private void scan(Result result) {
+  // scan devices recent and devices paired
+  private void scanDevice(Result result) {
     if(!mBluetoothAdapter.isDiscovering()){
       mBluetoothAdapter.cancelDiscovery();
     }
@@ -680,13 +467,13 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     IntentFilter filter = new IntentFilter();
     filter.addAction(BluetoothDevice.ACTION_FOUND);
     filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-    context.registerReceiver(receiver, filter);
+    context.registerReceiver(mReceiverScanDevice, filter);
 
     pairedDevices = mBluetoothAdapter.getBondedDevices();
     List<Map<String,String>> mapList = new ArrayList<>();
     for (BluetoothDevice bt : pairedDevices) {
       if(bt.getBluetoothClass().getDeviceClass() == 1664){
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         map.put("name", bt.getName());
         map.put("address",bt.getAddress());
         mapList.add(map);
@@ -694,10 +481,10 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
         System.out.println(bt);
       }
     }
-
     result.success(mapList);
   }
 
+  // connect to device
   private void connect(final Result result, Map<String, Object> args) {
     if (args.containsKey("address")) {
       String address = (String) args.get("address");
@@ -707,7 +494,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       try {
         connection.connect();
       }catch (Exception e){
-        System.out.println(e);
+        Log.d(TAG, "connect: " + e);
       }
       boolean checkState = connection.isCheck();
       if(checkState){
@@ -718,7 +505,7 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
     }
   }
 
-  // trạng thái bluetooth
+  // state bluetooth
   private void state(Result result){
     try {
       switch(mBluetoothAdapter.getState()) {
@@ -744,11 +531,11 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 
   }
 
-  // bắt sự kiên bluetooth thay đổi
+  // catch event when bluetooth changed
   private final StreamHandler stateHandler = new StreamHandler() {
     private EventSink sink;
 
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver mReceiverState = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
         final String action = intent.getAction();
@@ -773,65 +560,15 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
       filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
       filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
       filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-      context.registerReceiver(mReceiver, filter);
+      context.registerReceiver(mReceiverState, filter);
     }
 
     @Override
     public void onCancel(Object o) {
       sink = null;
-      context.unregisterReceiver(mReceiver);
+      context.unregisterReceiver(mReceiverState);
     }
   };
 
 }
 
-class DevicesModel{
-  //  val id: String?, val deviceName: String?, val deviceAddress: String?
-  String id;
-
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  public String getDeviceName() {
-    return deviceName;
-  }
-
-  public void setDeviceName(String deviceName) {
-    this.deviceName = deviceName;
-  }
-
-  public String getDeviceAddress() {
-    return deviceAddress;
-  }
-
-  public void setDeviceAddress(String deviceAddress) {
-    this.deviceAddress = deviceAddress;
-  }
-
-  public boolean isStateDevice() {
-    return stateDevice;
-  }
-
-  public void setStateDevice(boolean stateDevice) {
-    this.stateDevice = stateDevice;
-  }
-
-  String deviceName;
-  String deviceAddress;
-  boolean stateDevice;
-
-  public DevicesModel(String deviceName, String deviceAddress, boolean stateDevice) {
-    this.deviceName = deviceName;
-    this.deviceAddress = deviceAddress;
-    this.stateDevice = stateDevice;
-  }
-
-  String toDescription(){
-    return deviceName + "|" + deviceAddress + "|" + stateDevice;
-  }
-}
