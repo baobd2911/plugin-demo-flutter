@@ -234,30 +234,6 @@ class _MyHomePageState extends State<MyHomePage> {
     var value = await EventPrintPos.offBluetooth();
   }
 
-  void _checkState() async {
-    bool value = await EventPrintPos.checkStateBluetooth();
-    isCheckState = value;
-    print(isCheckState);
-  }
-
-  void _scanDevice() async {
-    String listDevice = await EventPrintPos.scanBluetooth();
-    if (listDevice != "") {
-      List<dynamic> devices = listDevice.split("&");
-      for (dynamic device in devices) {
-        String text = device.toString();
-
-        List<dynamic> deviceInfo = text.split("|");
-        DevicesModel model =
-            DevicesModel(deviceInfo[0], deviceInfo[1], deviceInfo[2]);
-        list.add(model);
-      }
-    } else {
-      list = [];
-      print('Không có máy in nào !!!');
-    }
-  }
-
   bool isChoose = false;
   void onChangeStateBlue(value) async {
     if (value) {
@@ -280,7 +256,6 @@ class _MyHomePageState extends State<MyHomePage> {
         //   print('Không có máy in nào !!!');
         // }
         // _scanDevice();
-
         list = [];
         await _bluetooth.startScan();
         debugPrint("scanning started");

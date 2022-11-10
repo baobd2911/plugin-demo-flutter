@@ -33,7 +33,7 @@ class FlutterScanBluetooth {
   static final _singleton = FlutterScanBluetooth._();
   final MethodChannel _channel = const MethodChannel('flutter_scan_bluetooth');
   static const MethodChannel channelConnect = MethodChannel('com.clv.demo/connect');
-  static const EventChannel _stateChannel = EventChannel('stateBluetooth');
+  static const EventChannel _stateChannel = EventChannel('com.clv.demo/stateBluetooth');
   List<BluetoothDeviceScan> _pairedDevices = [];
   final StreamController<BluetoothDeviceScan> _controller = StreamController.broadcast();
   final StreamController<bool> _scanStopped = StreamController.broadcast();
@@ -72,14 +72,14 @@ class FlutterScanBluetooth {
       await _channel.invokeMethod('isConnected');
 
   Stream<int> get state async* {
-    yield await _channel.invokeMethod('state').then((s) => s);
+    yield await _channel.invokeMethod('stateBluetooth').then((s) => s);
 
     yield* _stateChannel.receiveBroadcastStream().map((s) => s);
   }
 
   Future<void> startScan() async {
     _pairedDevices = [];
-    final bondedDevices = await _channel.invokeMethod('action_start_scan');
+    final bondedDevices = await _channel.invokeMethod('scanDevice');
     for (var device in bondedDevices) {
       final d = BluetoothDeviceScan(device['name'], device['address'], paired: true);
       _pairedDevices.add(d);

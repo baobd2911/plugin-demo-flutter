@@ -6,10 +6,6 @@ import 'package:flutter/services.dart';
 class EventPrintPos {
   static const MethodChannel channel = MethodChannel('com.clv.demo/print');
   static const MethodChannel channelPrint = MethodChannel('com.clv.demo/print');
-  static const MethodChannel getListBluetoothPrinters =
-      MethodChannel('com.clv.demo/getListBluetoothPrinters');
-  static const MethodChannel checkState =
-      MethodChannel('com.clv.demo/checkState');
 
   // Get battery level.
   static Future<String> getBatteryLevel() async {
@@ -53,10 +49,6 @@ class EventPrintPos {
   static Future<String> onBluetooth() async {
     var result = await channelPrint.invokeMethod("onBluetooth");
     return result;
-
-    // String mList = await getListBluetoothPrinters.invokeMethod("onBluetooth");
-    // print(mList);
-    // return Future.value(mList);
   }
 
   static Future<dynamic> offBluetooth() async {
@@ -64,15 +56,4 @@ class EventPrintPos {
     return result;
   }
 
-  static Future<bool> checkStateBluetooth() async {
-    bool result = await checkState.invokeMethod("checkStateBluetooth");
-    return result;
-  }
-
-  static Future<String> scanBluetooth() async {
-    String mList =
-        await getListBluetoothPrinters.invokeMethod("scanDeviceBluetooth");
-    print(mList);
-    return Future.value(mList);
-  }
 }
