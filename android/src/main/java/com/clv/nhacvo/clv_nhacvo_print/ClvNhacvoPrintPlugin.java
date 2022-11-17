@@ -252,14 +252,14 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 
             // In dọc
             // Chiều rộng giấy mặc định là 570
-            double widthTemp = 570;
-            double heightTemp = 570.0/(widthSreenshot/heightSreenshot);
-            System.out.println(widthTemp);
-            System.out.println(heightTemp);
+//            double widthTemp = 570;
+//            double heightTemp = 570.0/(widthSreenshot/heightSreenshot);
+//            System.out.println(widthTemp);
+//            System.out.println(heightTemp);
 
             // In Ngang
-//            widthTemp = widthMax < 580 ? 580 : widthMax;
-//            heightTemp = 900 * countPage;
+            widthTemp = widthMax < 580 ? 580 : widthMax;
+            heightTemp = 900 * countPage;
 
             System.out.println( "-----------------Start--------------------");
             System.out.println( "Input:  " + widthMax + " || " + heightMax);
