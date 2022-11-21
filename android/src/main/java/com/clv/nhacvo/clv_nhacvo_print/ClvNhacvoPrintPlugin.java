@@ -259,8 +259,10 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 
             // In Ngang
 //            double widthTemp = widthMax < 580 ? 580 : widthMax;
+            double ratio = widthSreenshot/heightSreenshot;
              double widthTemp = 650;
-             double heightTemp = (widthTemp * heightSreenshot/widthSreenshot) * countPage;
+             double heightTemp = widthTemp * ratio;
+             heightTemp = heightTemp * countPage;
 
             System.out.println( "-----------------Start--------------------");
             System.out.println( "Input:  " + widthMax + " || " + heightMax);
