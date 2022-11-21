@@ -247,8 +247,8 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
             Bitmap decodedByte = BitmapFactory.decodeByteArray(bitmapInput, 0, bitmapInput.length);
             double widthSreenshot = decodedByte.getWidth();
             double heightSreenshot = decodedByte.getHeight();
-            System.out.println(widthSreenshot);
-            System.out.println(heightSreenshot);
+            System.out.println(widthSreenshot); // ~ 400
+            System.out.println(heightSreenshot); // ~ 580
 
             // In dọc
             // Chiều rộng giấy mặc định là 570
@@ -259,10 +259,9 @@ public class ClvNhacvoPrintPlugin implements FlutterPlugin, ActivityAware, Metho
 
             // In Ngang
 //            double widthTemp = widthMax < 580 ? 580 : widthMax;
-            double ratio = widthSreenshot/heightSreenshot;
-             double heightTemp = 650;
-             double  widthTemp  = heightTemp * ratio;
-            widthTemp = widthTemp * countPage;
+            double ratio = (heightSreenshot*1.0)/(widthSreenshot*1.0);
+             double widthTemp = 650;
+             double  heightTemp  = (widthTemp * ratio) * countPage;
 
             System.out.println( "-----------------Start--------------------");
             System.out.println( "Input:  " + widthMax + " || " + heightMax);
