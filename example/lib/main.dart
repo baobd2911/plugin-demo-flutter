@@ -227,7 +227,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _onBluetooth() async {
-    var value = await EventPrintPos.onBluetooth();
+    // var value = await EventPrintPos.onBluetooth();
+    await _bluetooth.startScan();
   }
 
   void _offBluetooth() async {
