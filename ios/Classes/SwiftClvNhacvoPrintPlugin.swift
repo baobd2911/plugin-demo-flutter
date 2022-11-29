@@ -34,7 +34,8 @@ extension SwiftClvNhacvoPrintPlugin: CBCentralManagerDelegate {
 
 @available(iOS 10.0, *)
 public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin {
-    var centralManager: CBCentralManager! = CBCentralManager(delegate: nil, queue: nil)
+    var centralManager: CBCentralManager! = CBCentralManager(delegate: nil, queue: nil,
+    options: ["CBCentralManagerOptionShowPowerAlertKey" : 0])
     var bluetoothState: CBManagerState = .unknown
     let channel: FlutterMethodChannel
     var scanTimer: Timer?
@@ -56,7 +57,8 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin {
             return result(FlutterError.init(code: "error_no_bt", message: nil, details: nil))
         }
         else if(bluetoothState == .poweredOff) {
-            return result(FlutterError.init(code: "error_bluetooth_disabled", message: nil, details: nil))
+//            return result(FlutterError.init(code: "error_bluetooth_disabled", message: nil, details: nil))
+            CBCentralManager(delegate: nil, queue: nil,options: [CBCentralManagerOptionShowPowerAlertKey : true])
         }
         switch call.method {
         case "scanDevice":
