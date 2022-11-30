@@ -1,10 +1,12 @@
 import 'dart:typed_data';
+import 'dart:io' show Platform;
 
 import 'package:clv_nhacvo_print/src/bluetooth_print_model.dart';
 import 'package:clv_nhacvo_print/src/bluetooth_code.dart';
 import 'package:clv_nhacvo_print/src/event_print_pos.dart';
 import 'package:clv_nhacvo_print/src/flutter_scan_bluetooth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:measure_size/measure_size.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -59,15 +61,27 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
   // BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
-
   String _data = '';
   bool _scanning = false;
   FlutterScanBluetooth _bluetooth = FlutterScanBluetooth();
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.resumed) {
+      bool state = await _bluetooth.onState();
+      if(state){
+        print('bluetooth turn on !!!!!!');
+      }else{
+        print('bluetooth turn off !!!!!!');
+      }
+    }
+  }
+
+  @override
   void initState() {
+    WidgetsBinding.instance?.addObserver(this);
     super.initState();
     if (_connected) {
       tips = 'Đã kết nối';
@@ -232,7 +246,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _offBluetooth() async {
-    var value = await EventPrintPos.offBluetooth();
+    // var value = await EventPrintPos.offBluetooth();
+    // int value = await _bluetooth.checkBluetooth();
+    // print(value);
   }
 
   bool isChoose = false;
@@ -240,23 +256,6 @@ class _MyHomePageState extends State<MyHomePage> {
     if (value) {
       String scan = await EventPrintPos.onBluetooth();
       if (scan.endsWith("scan")) {
-        // String listDevice = await EventPrintPos.scanBluetooth();
-        // if(listDevice != ""){
-        //   List<dynamic> devices = listDevice.split("&");
-        //   for(dynamic device in devices){
-        //     String text = device.toString();
-        //
-        //     List<dynamic> deviceInfo = text.split("|");
-        //     bool stateDevice =  deviceInfo[2] == "true" ? true : false;
-        //     print(stateDevice);
-        //     DevicesModel model = DevicesModel(deviceInfo[0], deviceInfo[1],stateDevice);
-        //     list.add(model);
-        //   }
-        // }else{
-        //   list = [];
-        //   print('Không có máy in nào !!!');
-        // }
-        // _scanDevice();
         list = [];
         await _bluetooth.startScan();
         debugPrint("scanning started");
