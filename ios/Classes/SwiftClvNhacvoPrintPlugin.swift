@@ -53,15 +53,15 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin {
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if(bluetoothState == .unsupported) {
-            return result(FlutterError.init(code: "error_no_bt", message: nil, details: nil))
-        }
-        else if(bluetoothState == .poweredOff) {
-//            return result(FlutterError.init(code: "error_bluetooth_disabled", message: nil, details: nil))
-            CBCentralManager(delegate: nil, queue: nil,options: [CBCentralManagerOptionShowPowerAlertKey : true])
-        }
         switch call.method {
         case "scanDevice":
+            if(bluetoothState == .unsupported) {
+                return result(FlutterError.init(code: "error_no_bt", message: nil, details: nil))
+            }
+            else if(bluetoothState == .poweredOff) {
+    //            return result(FlutterError.init(code: "error_bluetooth_disabled", message: nil, details: nil))
+                CBCentralManager(delegate: nil, queue: nil,options: [CBCentralManagerOptionShowPowerAlertKey : true])
+            }
             if(centralManager.isScanning) {
                 stopScan()
             }
@@ -69,11 +69,6 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin {
 
             let bondedDevices = centralManager.retrieveConnectedPeripherals(withServices: [])
             var res = [Dictionary<String, String>]()
-//            if(call.arguments as! Bool) {
-//                for device in bondedDevices {
-//                    res.append(toMap(device))
-//                }
-//            }
             for device in bondedDevices {
                 res.append(toMap(device))
             }
@@ -84,6 +79,14 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin {
             stopScan()
             result(nil)
             break;
+        case "state":
+            if(bluetoothState == .poweredOn){
+                result(true)
+            }
+            else if(bluetoothState == .poweredOff){
+                result(false)
+            }
+            break
         case "action_request_permissions":
             if(bluetoothState == .unauthorized) {
                 if #available(iOS 13.0, *) {

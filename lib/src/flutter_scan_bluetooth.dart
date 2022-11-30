@@ -87,6 +87,11 @@ class FlutterScanBluetooth {
     }
   }
 
+  Future<bool> onState() async {
+    bool result = await _channel.invokeMethod("state");
+    return result;
+  }
+
   Future<void> close() async {
     await _scanStopped.close();
     await _controller.close();
