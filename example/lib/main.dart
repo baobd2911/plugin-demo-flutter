@@ -65,6 +65,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
   // BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
   String _data = '';
   bool _scanning = false;
+  int _currentItem = 0;
   FlutterScanBluetooth _bluetooth = FlutterScanBluetooth();
 
   @override
@@ -124,6 +125,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
       });
       print(_data);
     });
+    _bluetooth.checkConnected.listen((event) {
+      bool check = event;
+      if(check){
+        print('Printer connected !!!!!!');
+      }
+    });
+
     // _bluetooth.scanStopped.listen((device) {
     //   setState(() {
     //     _scanning = false;
@@ -220,8 +228,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
     _device = BluetoothDevice();
     _device.name = nameDevice;
     _device.address = addressDevice;
-    _device.type = 12;
-    _device.connected = true;
 
     if (_device?.address != null) {
       await _bluetooth.connect(_device);
@@ -231,6 +237,16 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
       });
       print('please select device');
     }
+  }
+
+  void _onConnectIOS(String id) async {
+    String index = id;
+    bool check = await _bluetooth.connectIOS(index);
+    print(check);
+    setState(() {
+        tips = 'Vui lòng chọn thiết bị';
+      });
+      print('please select device');
   }
 
   void _onDisconnect() async {
@@ -246,7 +262,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
   }
 
   void _offBluetooth() async {
-    // var value = await EventPrintPos.offBluetooth();
+    await _bluetooth.offBluetooth();
     // int value = await _bluetooth.checkBluetooth();
     // print(value);
   }
@@ -350,7 +366,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
                         onPressed: _onBluetooth,
                       ),
                       OutlineButton(
-                        child: const Text("OFF Bluetooth"),
+                        child: const Text("Printer"),
                         onPressed: _offBluetooth,
                       ),
                       // OutlineButton(
@@ -475,6 +491,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
                     shrinkWrap: true,
                     itemCount: list.length,
                     itemBuilder: (context, index) {
+                      String id = "${index.toString()}";
                       return Card(
                         child: list[index].state == true
                             ? ListTile(
@@ -487,8 +504,11 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
                                 leading: Icon(Icons.check_circle),
                                 trailing: Icon(Icons.check_circle),
                                 onTap: () {
-                                  _onConnect(
-                                      list[index].name, list[index].address);
+                                  if(Platform.isIOS){
+                                    _onConnectIOS(id);
+                                  }else if(Platform.isAndroid){
+                                    _onConnect(list[index].name, list[index].address);
+                                  }
                                 },
                               )
                             : ListTile(
@@ -501,8 +521,11 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver{
                                 leading: Icon(Icons.print),
                                 trailing: Icon(Icons.check_circle),
                                 onTap: () {
-                                  _onConnect(
-                                      list[index].name, list[index].address);
+                                  if(Platform.isIOS){
+                                    _onConnectIOS(id);
+                                  }else if(Platform.isAndroid){
+                                    _onConnect(list[index].name, list[index].address);
+                                  }
                                 },
                               ),
                       );

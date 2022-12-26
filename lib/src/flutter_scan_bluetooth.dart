@@ -37,6 +37,7 @@ class FlutterScanBluetooth {
   List<BluetoothDeviceScan> _pairedDevices = [];
   final StreamController<BluetoothDeviceScan> _controller = StreamController.broadcast();
   final StreamController<bool> _scanStopped = StreamController.broadcast();
+  final StreamController<bool> _checkConnect = StreamController.broadcast();
 
   factory FlutterScanBluetooth() => _singleton;
 
@@ -52,6 +53,11 @@ class FlutterScanBluetooth {
         case 'action_no_printer':
           _noDevice(methodCall.arguments);
           break;
+        case 'action_connected':
+          bool checkConnected = methodCall.arguments;
+          _checkConnect.add(true);
+          print(checkConnected);
+          break;
       }
       return null;
     });
@@ -61,12 +67,18 @@ class FlutterScanBluetooth {
 
   Stream<bool> get scanStopped => _scanStopped.stream;
 
+  Stream<bool> get checkConnected => _checkConnect.stream;
+
+
   Future<void> requestPermissions() async {
     await _channel.invokeMethod('action_request_permissions');
   }
 
   Future<dynamic> connect(BluetoothDevice device) =>
       channelConnect.invokeMethod('connectDevice', device.toJson());
+
+  Future<dynamic> connectIOS(String id) =>
+      _channel.invokeMethod('connectDevice', id);
 
   Future<bool> get isConnected async =>
       await _channel.invokeMethod('isConnected');
@@ -95,6 +107,11 @@ class FlutterScanBluetooth {
   Future<void> close() async {
     await _scanStopped.close();
     await _controller.close();
+  }
+
+  Future<void> offBluetooth() async {
+    var result = await _channel.invokeMethod("connect");
+    return result;
   }
 
   Future<void> stopScan() => _channel.invokeMethod('action_stop_scan');
