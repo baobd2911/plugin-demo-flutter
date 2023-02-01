@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 
 class EventPrintPos {
   static const MethodChannel channel = MethodChannel('com.clv.demo/print');
   static const MethodChannel channelPrint = MethodChannel('com.clv.demo/print');
+  static const MethodChannel channelPrintIos = MethodChannel('flutter_scan_bluetooth');
+
 
   // Get battery level.
   static Future<String> getBatteryLevel() async {
@@ -41,7 +44,13 @@ class EventPrintPos {
       "heightMax": 400, //400
       "countPage": countPage
     };
-    var result = await channelPrint.invokeMethod("onPrint", _sendData);
+    var result;
+    if (Platform.isAndroid) {
+      result = await channel.invokeMethod("onPrint", _sendData);
+    } else if (Platform.isIOS) {
+      result = await channelPrintIos.invokeMethod("onPrint", _sendData);
+    }
+
     print(result);
     return result;
   }
