@@ -3,8 +3,18 @@ import UIKit
 import CoreBluetooth
 import Foundation
 
+
+public extension String {
+    struct GBEncoding {
+        public static let GB_18030_2000 = String.Encoding(rawValue: CFStringConvertEncodingToNSStringEncoding(CFStringEncoding(CFStringEncodings.GB_18030_2000.rawValue)))
+    }
+}
+
+
+
 @available(iOS 10.0, *)
-extension SwiftClvNhacvoPrintPlugin: CBCentralManagerDelegate,CBPeripheralDelegate ,CBPeripheralManagerDelegate {
+extension SwiftClvNhacvoPrintPlugin: CBCentralManagerDelegate,CBPeripheralDelegate ,CBPeripheralManagerDelegate{
+    
     public func centralManagerDidUpdateState(_ central: CBCentralManager) {
         bluetoothState = central.state
         switch central.state {
@@ -30,23 +40,27 @@ extension SwiftClvNhacvoPrintPlugin: CBCentralManagerDelegate,CBPeripheralDelega
         case .unsupported:
             print("Peripheral Is Unsupported.")
         case .unauthorized:
-        print("Peripheral Is Unauthorized.")
+            print("Peripheral Is Unauthorized.")
         case .unknown:
             print("Peripheral Unknown")
         case .resetting:
             print("Peripheral Resetting")
         case .poweredOff:
-          print("Peripheral Is Powered Off.")
+            print("Peripheral Is Powered Off.")
         @unknown default:
-          print("Error")
+            print("Error")
         }
-      }
-
-     public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-         print("Discovered \(peripheral.name ?? "unknown") : \(peripheral.identifier.uuidString)")
-         channel.invokeMethod("action_new_device", arguments: toMap(peripheral))
-     }
-
+    }
+    
+    public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+        print("Discovered \(peripheral.name ?? "unknown") : \(peripheral.identifier.uuidString)")
+        channel.invokeMethod("action_new_device", arguments: toMap(peripheral))
+    }
+    
+    
+    
+    
+    
     private func toMap(_ device: CBPeripheral) -> [String:String] {
         arrayPeripehral.append(device)
         return ["name": device.name ?? device.identifier.uuidString, "address": device.identifier.uuidString]
@@ -55,20 +69,26 @@ extension SwiftClvNhacvoPrintPlugin: CBCentralManagerDelegate,CBPeripheralDelega
     public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         print("Connected!")
         checkIsConnect = true
-        peripheral.discoverServices(nil)
+        peripheral.delegate = self
+        peripheral.discoverServices([CBUUID(string: "E7810A71-73AE-499D-8C15-FAA9AEF0C3F2")])
         channel.invokeMethod("action_connected", arguments: checkIsConnect)
     }
     
-//    public func centralManager(_ central: CBCentralManager, didDisConnect peripheral: CBPeripheral) {
-//        print("Disconnected!")
-//        checkIsConnect = true
-//        peripheral.discoverServices(nil)
-//    }
+    //    public func centralManager(_ central: CBCentralManager, didDisConnect peripheral: CBPeripheral) {
+    //        print("Disconnected!")
+    //        checkIsConnect = true
+    //        peripheral.discoverServices(nil)
+    //    }
+    
+    
+    
+    
     
     public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
-        }
+    }
     
     public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+        print("com here")
         if ((error) != nil) {
             print("Error discovering services: \(error!.localizedDescription)")
             return
@@ -76,44 +96,74 @@ extension SwiftClvNhacvoPrintPlugin: CBCentralManagerDelegate,CBPeripheralDelega
         guard let services = peripheral.services else {
             return
         }
+        
         for service in services {
             peripheral.discoverCharacteristics(nil, for: service)
         }
         print("Discovered Services: \(services)")
     }
-
+    
     public func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
-
-        for char in service.characteristics ?? [] {
-//            print("Discovered char: \(char.uuid.uuidString)")
-        }
-
+        writablePeripheral = peripheral
+        writablecharacteristic = service.characteristics?.filter { $0.uuid.uuidString == writablecharacteristicUUID }.first
     }
 }
 
 @available(iOS 10.0, *)
 public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDelegate,CBCentralManagerDelegate {
     var centralManager: CBCentralManager! = CBCentralManager(delegate: nil, queue: nil,
-    options: ["CBCentralManagerOptionShowPowerAlertKey" : 0])
+                                                             options: ["CBCentralManagerOptionShowPowerAlertKey" : 0])
     var bluetoothState: CBManagerState = .unknown
     let channel: FlutterMethodChannel
     var scanTimer: Timer?
+    var textString: String?
     var arrayPeripehral = [CBPeripheral]()
     var checkIsConnect: Bool = false
-
-
+    var wellDoneCanWriteData: ((CBPeripheral) -> ())?
+    private let writablecharacteristicUUID = "BEF8D6C9-9C21-4C9E-B632-BD58C1009F9F"
+    var writablePeripheral: CBPeripheral?
+    var writablecharacteristic: CBCharacteristic?
+    {
+        didSet {
+            if let wc = writablecharacteristic, let wp = writablePeripheral {
+                wp.setNotifyValue(true, for: wc)
+                wellDoneCanWriteData?(wp)
+            }
+        }
+    }
+    
+    
+    private(set) var peripheral: CBPeripheral?
+    
+    
     init(_ channel: FlutterMethodChannel) {
         self.channel = channel
         super.init()
         centralManager.delegate = self
     }
-
+    
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "flutter_scan_bluetooth", binaryMessenger: registrar.messenger())
         let instance = SwiftClvNhacvoPrintPlugin(channel)
         registrar.addMethodCallDelegate(instance, channel: channel)
+        print("instance \(instance)")
     }
-
+    
+    
+    
+    func scaleImageHeight(sourceImage: UIImage) -> UIImage {
+        let oldheight: CGFloat = sourceImage.size.height
+        let oldWidth: CGFloat = sourceImage.size.width
+        let scaleFactor: CGFloat = oldWidth / oldheight
+        let newWidth: CGFloat = 560
+        let newHeight: CGFloat = 560 / scaleFactor
+        UIGraphicsBeginImageContext(CGSize(width: newWidth, height: newHeight))
+        sourceImage.draw(in: CGRect(x: 12, y: 0, width: newWidth, height: newHeight))
+        let newImage: UIImage = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        return newImage
+    }
+    
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult)   {
         switch call.method {
         case "scanDevice":
@@ -127,8 +177,6 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
                 stopScan()
             }
             centralManager.scanForPeripherals(withServices: [CBUUID(string: "E7810A71-73AE-499D-8C15-FAA9AEF0C3F2")], options: nil)
-//            centralManager.scanForPeripherals(withServices: nil, options: nil)
-
             let bondedDevices = centralManager.retrieveConnectedPeripherals(withServices: [])
             var res = [Dictionary<String, String>]()
             for device in bondedDevices {
@@ -151,12 +199,10 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
             break
         case "connectDevice":
             let id: String = call.arguments as! String
-            print(id)
             let index = (id as NSString).integerValue
-            let peripheral = arrayPeripehral[index]
-            peripheral.delegate = self
+            peripheral = arrayPeripehral[index]
             centralManager.stopScan()
-            centralManager?.connect(peripheral,options: nil)
+            centralManager?.connect(peripheral!,options: nil)
             break;
         case "action_request_permissions":
             if(bluetoothState == .unauthorized) {
@@ -171,11 +217,47 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
             }
             result(nil)
             break;
+        case "onPrint":
+            let arguments = call.arguments as? [String:Any]
+            guard let bitmapInput = arguments!["bitmapInput"] as?  FlutterStandardTypedData else {
+                return
+            }
+            guard var image = UIImage(data: bitmapInput.data) else {
+                return
+            }
+            image = image.withRenderingMode(.alwaysOriginal)
+            image = scaleImageHeight(sourceImage: image)
+            guard let p = writablePeripheral, let c = writablecharacteristic else {
+                return
+            }
+            
+            let ticket = Ticket(
+                .image(image)
+
+            )
+            let enncod = String.GBEncoding.GB_18030_2000
+            for data in ticket.data(using: enncod) {
+                p.writeValue(data, for: c, type: .withoutResponse)
+            }
+            break
         default:
             result(FlutterMethodNotImplemented);
         }
     }
-
+    
+    public func printf() {
+        guard let p = writablePeripheral else {
+            print("writablePeripheral is nil")
+            return
+        }
+        guard let c = writablecharacteristic else  {
+            print("writablecharacteristic is nil")
+            return
+        }
+        p.writeValue(Data("Print ra được dòng này đi huhu nãn lắm rồi".utf8) , for: c , type: .withoutResponse)
+        
+    }
+    
     func stopScan() {
         scanTimer?.invalidate()
         centralManager.stopScan()
