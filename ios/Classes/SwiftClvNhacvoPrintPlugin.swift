@@ -53,6 +53,7 @@ extension SwiftClvNhacvoPrintPlugin: CBCentralManagerDelegate,CBPeripheralDelega
     }
     
     public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+        print("=====>")
         print("Discovered \(peripheral.name ?? "unknown") : \(peripheral.identifier.uuidString)")
         channel.invokeMethod("action_new_device", arguments: toMap(peripheral))
     }
@@ -107,6 +108,12 @@ extension SwiftClvNhacvoPrintPlugin: CBCentralManagerDelegate,CBPeripheralDelega
         writablePeripheral = peripheral
         writablecharacteristic = service.characteristics?.filter { $0.uuid.uuidString == writablecharacteristicUUID }.first
     }
+    
+    public func disconnectAllPrinter() {
+        centralManager.retrieveConnectedPeripherals(withServices: [CBUUID(string: "E7810A71-73AE-499D-8C15-FAA9AEF0C3F2")]).forEach {
+            centralManager.cancelPeripheralConnection($0)
+        }
+    }
 }
 
 @available(iOS 10.0, *)
@@ -158,7 +165,7 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
         let newWidth: CGFloat = 560
         let newHeight: CGFloat = 560 / scaleFactor
         UIGraphicsBeginImageContext(CGSize(width: newWidth, height: newHeight))
-        sourceImage.draw(in: CGRect(x: 12, y: 0, width: newWidth, height: newHeight))
+        sourceImage.draw(in: CGRect(x: 10, y: 0, width: newWidth, height: newHeight))
         let newImage: UIImage = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
         return newImage
@@ -176,6 +183,7 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
             if(centralManager.isScanning) {
                 stopScan()
             }
+            disconnectAllPrinter()
             centralManager.scanForPeripherals(withServices: [CBUUID(string: "E7810A71-73AE-499D-8C15-FAA9AEF0C3F2")], options: nil)
             let bondedDevices = centralManager.retrieveConnectedPeripherals(withServices: [])
             var res = [Dictionary<String, String>]()
@@ -203,6 +211,7 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
             peripheral = arrayPeripehral[index]
             centralManager.stopScan()
             centralManager?.connect(peripheral!,options: nil)
+            result(true)
             break;
         case "action_request_permissions":
             if(bluetoothState == .unauthorized) {
@@ -245,18 +254,7 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
         }
     }
     
-    public func printf() {
-        guard let p = writablePeripheral else {
-            print("writablePeripheral is nil")
-            return
-        }
-        guard let c = writablecharacteristic else  {
-            print("writablecharacteristic is nil")
-            return
-        }
-        p.writeValue(Data("Print ra được dòng này đi huhu nãn lắm rồi".utf8) , for: c , type: .withoutResponse)
-        
-    }
+    
     
     func stopScan() {
         scanTimer?.invalidate()
