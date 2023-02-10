@@ -158,17 +158,41 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
     
     
     
-    func scaleImageHeight(sourceImage: UIImage) -> UIImage {
+    public func printImage(image: UIImage){
+        guard let p = writablePeripheral, let c = writablecharacteristic else {
+            return
+        }
+        let ticket = Ticket(
+            .image(image)
+
+        )
+        let enncod = String.GBEncoding.GB_18030_2000
+        for data in ticket.data(using: enncod) {
+            p.writeValue(data, for: c, type: .withoutResponse)
+        }
+    }
+    
+    
+    
+    func resizeAndPrintImage(sourceImage: UIImage){
         let oldheight: CGFloat = sourceImage.size.height
         let oldWidth: CGFloat = sourceImage.size.width
         let scaleFactor: CGFloat = oldWidth / oldheight
         let newWidth: CGFloat = 560
         let newHeight: CGFloat = 560 / scaleFactor
         UIGraphicsBeginImageContext(CGSize(width: newWidth, height: newHeight))
-        sourceImage.draw(in: CGRect(x: 10, y: 0, width: newWidth, height: newHeight))
+        sourceImage.draw(in: CGRect(x: 0, y: 0, width: newWidth, height: newHeight))
         let newImage: UIImage = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
-        return newImage
+        for y in stride(from: 0, to: newHeight, by: 588) {
+            let rect = CGRect(x: 0, y: y, width: 560, height: (y + 588 >= newHeight) ? newHeight - y : 588)
+            let croppedCGImage = newImage.cgImage?.cropping(to: rect)
+            let croppedImage = UIImage(cgImage: croppedCGImage!)
+            print(croppedImage.size.width)
+            print(croppedImage.size.height)
+            printImage(image:croppedImage)
+        }
+        print(newHeight)
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult)   {
@@ -234,20 +258,7 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
             guard var image = UIImage(data: bitmapInput.data) else {
                 return
             }
-            image = image.withRenderingMode(.alwaysOriginal)
-            image = scaleImageHeight(sourceImage: image)
-            guard let p = writablePeripheral, let c = writablecharacteristic else {
-                return
-            }
-            
-            let ticket = Ticket(
-                .image(image)
-
-            )
-            let enncod = String.GBEncoding.GB_18030_2000
-            for data in ticket.data(using: enncod) {
-                p.writeValue(data, for: c, type: .withoutResponse)
-            }
+            resizeAndPrintImage(sourceImage: image)
             break
         default:
             result(FlutterMethodNotImplemented);
