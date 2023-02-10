@@ -259,6 +259,7 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
                 return
             }
             resizeAndPrintImage(sourceImage: image)
+            result("Success !!!")
             break
         default:
             result(FlutterMethodNotImplemented);
