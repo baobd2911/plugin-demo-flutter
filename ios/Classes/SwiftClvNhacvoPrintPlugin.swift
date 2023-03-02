@@ -175,13 +175,14 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
         }
         let receipt = Receipt(.init(maxWidthDensity: 384, fontDesity: 12, encoding: .utf8))
         <<< Image(listImage.cgImage!,grayThreshold: 100)
-               
+        
+
         p.writeValue(Data(receipt.data),for: c, type: .withoutResponse)
     }
     
     
     
-    func resizeAndPrintImage(sourceImage: UIImage){
+    func resizeAndPrintImage(sourceImage: UIImage, result: @escaping FlutterResult){
         let oldheight: CGFloat = sourceImage.size.height
         let oldWidth: CGFloat = sourceImage.size.width
         let scaleFactor: CGFloat = oldWidth / oldheight
@@ -191,16 +192,16 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
         sourceImage.draw(in: CGRect(x: 0, y: 0, width: newWidth, height: newHeight))
         let newImage: UIImage = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
-      
-        for y in stride(from: 0, to: newHeight, by: 588) {
-            let rect = CGRect(x: 0, y: y, width: 560, height: (y + 588 >= newHeight) ? newHeight - y : 588)
+        for y in stride(from: 0, to: newHeight, by: 200) {
+            let rect = CGRect(x: 0, y: y, width: 560, height: (y + 200 >= newHeight) ? newHeight - y : 200)
             let croppedCGImage = newImage.cgImage?.cropping(to: rect)
             let croppedImage = UIImage(cgImage: croppedCGImage!)
-            print(croppedImage.size.width)
-            print(croppedImage.size.height)
             listCropImage.append(croppedImage)
             printImage(listImage: croppedImage)
         }
+            result("Success !!!")
+
+        
     }
     
    
@@ -273,7 +274,8 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
         guard var image = UIImage(data: bitmapInput.data) else {
             return
         }
-        resizeAndPrintImage(sourceImage: image)
+        resizeAndPrintImage(sourceImage: image,result:result)
+        
     }
     
     
