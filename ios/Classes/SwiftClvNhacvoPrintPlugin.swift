@@ -161,6 +161,13 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
         case "action_request_permissions":
             action_request_permissions(call:call,result: result)
             break;
+        case "remove_all_device":
+            if(centralManager.isScanning) {
+                disconnectAllPrinter()
+                stopScan()
+            }
+
+            break;
         case "onPrint":
             onPrint(call:call,result: result)
             break
