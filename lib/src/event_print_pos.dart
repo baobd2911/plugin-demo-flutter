@@ -7,8 +7,8 @@ import 'package:flutter/services.dart';
 class EventPrintPos {
   static const MethodChannel channel = MethodChannel('com.clv.demo/print');
   static const MethodChannel channelPrint = MethodChannel('com.clv.demo/print');
-  static const MethodChannel channelPrintIos = MethodChannel('flutter_scan_bluetooth');
-
+  static const MethodChannel channelPrintIos =
+      MethodChannel('flutter_scan_bluetooth');
 
   // Get battery level.
   static Future<String> getBatteryLevel() async {
@@ -60,9 +60,17 @@ class EventPrintPos {
     return result;
   }
 
+  removeAllDevice() async {
+    if (Platform.isAndroid) {
+    } else if (Platform.isIOS) {
+      await channelPrint.invokeMethod("remove_all_device");
+    }
+
+    return;
+  }
+
   static Future<dynamic> offBluetooth() async {
     var result = await channelPrint.invokeMethod("offBluetooth");
     return result;
   }
-
 }
