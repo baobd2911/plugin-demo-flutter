@@ -60,7 +60,7 @@ class EventPrintPos {
     return result;
   }
 
-  removeAllDevice() async {
+  static Future<dynamic> removeAllDevice() async {
     if (Platform.isAndroid) {
     } else if (Platform.isIOS) {
       await channelPrint.invokeMethod("remove_all_device");
