@@ -63,7 +63,13 @@ extension SwiftClvNhacvoPrintPlugin: CBCentralManagerDelegate,CBPeripheralDelega
         peripheral.discoverServices(nil)
         channel.invokeMethod("action_connected", arguments: checkIsConnect)
     }
-        
+    
+    
+    public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+
+        print("Diss Connected! 2")
+        channel.invokeMethod("disconected", arguments: [])
+    }
     
     public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if ((error) != nil) {

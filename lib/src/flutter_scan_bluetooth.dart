@@ -36,6 +36,8 @@ class FlutterScanBluetooth {
   static const EventChannel _stateChannel = EventChannel('com.clv.demo/stateBluetooth');
   List<BluetoothDeviceScan> _pairedDevices = [];
   final StreamController<BluetoothDeviceScan> _controller = StreamController.broadcast();
+  final StreamController<String> _controllerConnect = StreamController.broadcast();
+
   final StreamController<bool> _scanStopped = StreamController.broadcast();
   final StreamController<bool> _checkConnect = StreamController.broadcast();
 
@@ -46,6 +48,11 @@ class FlutterScanBluetooth {
       switch (methodCall.method) {
         case 'action_new_device':
           _newDevice(methodCall.arguments);
+          break;
+
+        case 'disconected':
+          _controllerConnect.add("disconect_device");
+          print("======>0");
           break;
         case 'action_scan_stopped':
           _scanStopped.add(true);
@@ -64,6 +71,8 @@ class FlutterScanBluetooth {
   }
 
   Stream<BluetoothDeviceScan> get devices => _controller.stream;
+  Stream<String> get conectDevicesState => _controllerConnect.stream;
+
 
   Stream<bool> get scanStopped => _scanStopped.stream;
 
