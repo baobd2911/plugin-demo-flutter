@@ -187,7 +187,7 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
             return
         }
         let receipt = Receipt(.init(maxWidthDensity: 384, fontDesity: 12, encoding: .utf8))
-        <<< Image(listImage.cgImage!,grayThreshold: 88)
+        <<< Image(listImage.cgImage!,grayThreshold: 85)
         
 
         p.writeValue(Data(receipt.data),for: c, type: .withoutResponse)
