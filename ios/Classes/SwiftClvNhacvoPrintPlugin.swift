@@ -186,8 +186,8 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
         guard let p = writablePeripheral, let c = writablecharacteristic else {
             return
         }
-        let receipt = Receipt(.init(maxWidthDensity: 384, fontDesity: 12, encoding: .utf8))
-        <<< Image(listImage.cgImage!,grayThreshold: 85)
+        let receipt = Receipt(.init(maxWidthDensity: 700, fontDesity: 14, encoding: .utf8))
+        <<< Image(listImage.cgImage!,grayThreshold: 80)
         
 
         p.writeValue(Data(receipt.data),for: c, type: .withoutResponse)
@@ -199,14 +199,14 @@ public class SwiftClvNhacvoPrintPlugin: NSObject, FlutterPlugin, CBPeripheralDel
         let oldheight: CGFloat = sourceImage.size.height
         let oldWidth: CGFloat = sourceImage.size.width
         let scaleFactor: CGFloat = oldWidth / oldheight
-        let newWidth: CGFloat = 560
-        let newHeight: CGFloat = 560 / scaleFactor
+        let newWidth: CGFloat = 620
+        let newHeight: CGFloat = 620 / scaleFactor
         UIGraphicsBeginImageContext(CGSize(width: newWidth, height: newHeight))
         sourceImage.draw(in: CGRect(x: 0, y: 0, width: newWidth, height: newHeight))
         let newImage: UIImage = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
-        for y in stride(from: 0, to: newHeight, by: 200) {
-            let rect = CGRect(x: 0, y: y, width: 560, height: (y + 200 >= newHeight) ? newHeight - y : 200)
+        for y in stride(from: 0, to: newHeight, by: 190) {
+            let rect = CGRect(x: 0, y: y, width: 620, height: (y + 190 >= newHeight) ? (newHeight - y )  : 190)
             let croppedCGImage = newImage.cgImage?.cropping(to: rect)
             let croppedImage = UIImage(cgImage: croppedCGImage!)
             listCropImage.append(croppedImage)
